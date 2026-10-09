@@ -1,31 +1,16 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import CabinBrowser from "../components/CabinBrowser";
-import { isCapacityFilter, type CabinFilter } from "../lib/data";
 import { getCabins } from "../lib/data-service";
+import Loading from "./loading";
 
 export const metadata: Metadata = {
   title: "Cabins",
 };
 
-export default async function Page({ searchParams }: PageProps<"/cabins">) {
-  const { capacity } = await searchParams;
-  const initialFilter: CabinFilter = isCapacityFilter(capacity)
-    ? capacity
-    : "all";
-  // eslint-disable-next-line react-hooks/purity -- request-scoped server timing
-  const cabinsStartedAt = performance.now();
+export default async function Page() {
   const cabins = await getCabins();
-
-  console.info(
-    "[cabin-perf]",
-    JSON.stringify({
-      event: "getCabins-call-complete",
-      filter: "all",
-      // eslint-disable-next-line react-hooks/purity -- request-scoped server timing
-      durationMs: Number((performance.now() - cabinsStartedAt).toFixed(1)),
-    }),
-  );
 
   return (
     <div>
@@ -42,7 +27,9 @@ export default async function Page({ searchParams }: PageProps<"/cabins">) {
         Welcome to paradise.
       </p>
 
-      <CabinBrowser cabins={cabins} initialFilter={initialFilter} />
+      <Suspense fallback={<Loading />}>
+        <CabinBrowser cabins={cabins} />
+      </Suspense>
     </div>
   );
 }

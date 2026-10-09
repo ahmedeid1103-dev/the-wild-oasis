@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 
 import CabinList from "./CabinList";
 import {
@@ -23,31 +24,16 @@ function getSelectionMarkName(filter: CabinFilter) {
 
 export default function CabinBrowser({
   cabins,
-  initialFilter,
 }: {
   cabins: Cabin[];
-  initialFilter: CabinFilter;
 }) {
-  const [filter, setFilter] = useState(initialFilter);
-  const previousFilter = useRef(initialFilter);
-
-  useEffect(() => {
-    function syncFilterFromUrl() {
-      const capacityParams = new URLSearchParams(
-        window.location.search,
-      ).getAll("capacity");
-
-      setFilter(
-        capacityParams.length === 1 && isCapacityFilter(capacityParams[0])
-          ? capacityParams[0]
-          : "all",
-      );
-    }
-
-    window.addEventListener("popstate", syncFilterFromUrl);
-
-    return () => window.removeEventListener("popstate", syncFilterFromUrl);
-  }, []);
+  const searchParams = useSearchParams();
+  const capacityParams = searchParams.getAll("capacity");
+  const filter: CabinFilter =
+    capacityParams.length === 1 && isCapacityFilter(capacityParams[0])
+      ? capacityParams[0]
+      : "all";
+  const previousFilter = useRef(filter);
 
   useEffect(() => {
     if (previousFilter.current === filter) {
@@ -111,6 +97,10 @@ export default function CabinBrowser({
   }
 
   function handleFilterChange(nextFilter: CabinFilter) {
+    if (nextFilter === filter) {
+      return;
+    }
+
     for (const item of filters) {
       performance.clearMarks(getSelectionMarkName(item.value));
     }
@@ -128,7 +118,6 @@ export default function CabinBrowser({
     const url = new URL(window.location.href);
     url.search = queryString;
     window.history.pushState(null, "", url);
-    setFilter(nextFilter);
   }
 
   return (

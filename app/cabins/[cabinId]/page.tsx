@@ -11,10 +11,24 @@ type PageProps = {
   }>;
 };
 
+const CABIN_ID_PATTERN = /^[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}$/i;
+
+function isValidCabinId(cabinId: string): boolean {
+  return CABIN_ID_PATTERN.test(cabinId);
+}
+
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { cabinId } = await params;
+
+  if (!isValidCabinId(cabinId)) {
+    return {
+      title: "Cabin Not Found",
+      description: "The cabin you are looking for does not exist.",
+    };
+  }
+
   const cabin = await getCabin(cabinId);
 
   if (!cabin) {
@@ -40,6 +54,11 @@ export async function generateStaticParams() {
 
 export default async function Page({ params }: PageProps) {
   const { cabinId } = await params;
+
+  if (!isValidCabinId(cabinId)) {
+    notFound();
+  }
+
   const cabin = await getCabin(cabinId);
 
   if (!cabin) {

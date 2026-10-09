@@ -54,11 +54,6 @@ export default function CabinReservation({ cabin }: { cabin: Cabin }) {
       return;
     }
 
-    if (new Date(reservation.endDate) <= new Date(reservation.startDate)) {
-      setStatusMessage("Check-out must be after check-in.");
-      return;
-    }
-
     setStatusMessage(
       `Reservation summary for ${cabin.name}: ${nights} ${
         nights === 1 ? "night" : "nights"

@@ -1,0 +1,2054 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+app/
+  about/
+    page.tsx
+  account/
+    profile/
+      page.tsx
+    reservations/
+      page.tsx
+    layout.tsx
+    page.tsx
+  cabins/
+    [cabinId]/
+      error.tsx
+      not-found.tsx
+      page.tsx
+    error.tsx
+    loading.tsx
+    page.tsx
+  components/
+    CabinBrowser.tsx
+    CabinCard.tsx
+    CabinDetail.tsx
+    CabinList.tsx
+    CabinReservation.tsx
+    Header.tsx
+    index.ts
+    Logo.tsx
+    Navigation.tsx
+    SideNavigation.tsx
+    SignOutButton.tsx
+    Spinner.tsx
+  lib/
+    queries/
+      cabin-queries.ts
+    supabase/
+      client.ts
+    data-service.ts
+    data.ts
+  styles/
+    globals.css
+  types/
+    cabin.ts
+  icon.png
+  layout.tsx
+  page.tsx
+  providers.tsx
+public/
+  cabins/
+    cabin-001.jpg
+    cabin-002.jpg
+    cabin-003.jpg
+    cabin-004.jpg
+    cabin-005.jpg
+    cabin-006.jpg
+    cabin-007.jpg
+    cabin-008.jpg
+  about-1.jpg
+  about-2.jpg
+  bg.png
+  logo.png
+.gitignore
+AGENTS.md
+CLAUDE.md
+eslint.config.mjs
+next.config.ts
+package.json
+postcss.config.mjs
+README.md
+tsconfig.json
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="app/about/page.tsx">
+import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
+
+import about1 from "@/public/about-1.jpg";
+import about2 from "@/public/about-2.jpg";
+
+export const metadata: Metadata = {
+  title: "About",
+};
+
+export default function Page() {
+  return (
+    <div className="grid gap-24 md:gap-32">
+      <section className="grid items-center gap-8 md:grid-cols-2 md:gap-16">
+        <div>
+          <h1 className="mb-6 text-4xl font-medium text-accent-400">
+            Welcome to The Wild Oasis
+          </h1>
+
+          <div className="space-y-6 text-lg leading-8 text-primary-200">
+            <p>
+              Where nature&apos;s beauty and comfortable living blend
+              seamlessly. Hidden away in the heart of the Italian Dolomites,
+              this is your paradise away from home. But it&apos;s not just about
+              the luxury cabins. It&apos;s about the experience of reconnecting
+              with nature and enjoying simple pleasures with family.
+            </p>
+
+            <p>
+              Our 8 luxury cabins provide a cozy base, but the real freedom and
+              peace you&apos;ll find in the surrounding mountains. Wander
+              through lush forests, breathe in the fresh air, and watch the
+              stars twinkle above from the warmth of a campfire or your hot tub.
+            </p>
+
+            <p>
+              This is where memorable moments are made, surrounded by
+              nature&apos;s splendor. It&apos;s a place to slow down, relax, and
+              feel the joy of being together in a beautiful setting.
+            </p>
+          </div>
+        </div>
+
+        <div className="relative h-112">
+          <Image
+            src={about1}
+            fill
+            priority
+            placeholder="blur"
+            sizes="(max-width: 768px) 100vw, 50vw"
+            alt="Family sitting around a fire pit in front of a cabin"
+            className="object-cover"
+          />
+        </div>
+      </section>
+
+      <section className="grid items-center gap-8 md:grid-cols-2 md:gap-16">
+        <div className="relative order-2 h-112 md:order-1">
+          <Image
+            src={about2}
+            fill
+            placeholder="blur"
+            sizes="(max-width: 768px) 100vw, 50vw"
+            alt="Family that manages The Wild Oasis"
+            className="object-cover"
+          />
+        </div>
+
+        <div className="order-1 md:order-2">
+          <h2 className="mb-6 text-4xl font-medium text-accent-400">
+            Managed by our family since 1962
+          </h2>
+
+          <div className="space-y-6 text-lg leading-8 text-primary-200">
+            <p>
+              Since 1962, The Wild Oasis has been a cherished family-run
+              retreat. Started by our grandparents, this haven has been nurtured
+              with love and care, passing down through our family as a testament
+              to our dedication to creating a warm, welcoming environment.
+            </p>
+
+            <p>
+              Over the years, we&apos;ve maintained the essence of The Wild
+              Oasis, blending the timeless beauty of the mountains with the
+              personal touch only a family business can offer. Here, you&apos;re
+              not just a guest; you&apos;re part of our extended family. So join
+              us at The Wild Oasis soon, where tradition meets tranquility, and
+              every visit is like coming home.
+            </p>
+
+            <Link
+              href="/cabins"
+              className="inline-block bg-accent-500 px-8 py-5 text-lg font-semibold text-primary-800 transition-all hover:bg-accent-600"
+            >
+              Explore our luxury cabins
+            </Link>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+</file>
+
+<file path="app/account/profile/page.tsx">
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Profile",
+};
+
+export default function Page() {
+  return (
+    <div>
+      <h1 className="mb-3 text-4xl font-medium text-accent-400">
+        Update your guest profile
+      </h1>
+
+      <p className="mb-10 max-w-2xl text-lg leading-8 text-primary-200">
+        Providing the following information will make your check-in process
+        faster and smoother. See you soon!
+      </p>
+
+      <form className="max-w-2xl space-y-6">
+        <div>
+          <label
+            htmlFor="fullName"
+            className="mb-2 block text-sm font-medium text-primary-300"
+          >
+            Full name
+          </label>
+
+          <input
+            id="fullName"
+            name="fullName"
+            type="text"
+            defaultValue="Jonas Schmedtmann"
+            className="w-full border border-primary-700 bg-primary-900 px-5 py-3 text-primary-100 outline-none transition-colors focus:border-accent-500"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="email"
+            className="mb-2 block text-sm font-medium text-primary-300"
+          >
+            Email address
+          </label>
+
+          <input
+            id="email"
+            name="email"
+            type="email"
+            defaultValue="jonas@example.com"
+            disabled
+            className="w-full border border-primary-800 bg-primary-900 px-5 py-3 text-primary-500"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="nationality"
+            className="mb-2 block text-sm font-medium text-primary-300"
+          >
+            Nationality
+          </label>
+
+          <select
+            id="nationality"
+            name="nationality"
+            defaultValue="Germany"
+            className="w-full border border-primary-700 bg-primary-900 px-5 py-3 text-primary-100 outline-none transition-colors focus:border-accent-500"
+          >
+            <option value="Germany">Germany</option>
+            <option value="Italy">Italy</option>
+            <option value="France">France</option>
+            <option value="Spain">Spain</option>
+            <option value="United Kingdom">United Kingdom</option>
+            <option value="United States">United States</option>
+            <option value="Egypt">Egypt</option>
+          </select>
+        </div>
+
+        <div>
+          <label
+            htmlFor="nationalId"
+            className="mb-2 block text-sm font-medium text-primary-300"
+          >
+            National ID
+          </label>
+
+          <input
+            id="nationalId"
+            name="nationalId"
+            type="text"
+            defaultValue="DE123456789"
+            className="w-full border border-primary-700 bg-primary-900 px-5 py-3 text-primary-100 outline-none transition-colors focus:border-accent-500"
+          />
+        </div>
+
+        <button
+          type="submit"
+          className="bg-accent-500 px-6 py-3 font-semibold text-primary-900 transition-colors hover:bg-accent-600"
+        >
+          Update profile
+        </button>
+      </form>
+    </div>
+  );
+}
+</file>
+
+<file path="app/account/reservations/page.tsx">
+import type { Metadata } from "next";
+import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Reservations",
+};
+
+const reservations = [
+  {
+    id: 1,
+    cabin: "001",
+    startDate: "September 10, 2026",
+    endDate: "September 14, 2026",
+    guests: 2,
+    nights: 4,
+    totalPrice: 1000,
+    status: "Confirmed",
+  },
+  {
+    id: 2,
+    cabin: "004",
+    startDate: "October 5, 2026",
+    endDate: "October 10, 2026",
+    guests: 4,
+    nights: 5,
+    totalPrice: 2250,
+    status: "Confirmed",
+  },
+];
+
+export default function Page() {
+  return (
+    <div>
+      <div className="mb-8">
+        <h1 className="mb-3 text-4xl font-medium text-accent-400">
+          Your reservations
+        </h1>
+
+        <p className="text-lg text-primary-200">
+          Here you can see all your reservations and manage your upcoming stays.
+        </p>
+      </div>
+
+      {reservations.length === 0 ? (
+        <div className="border border-primary-800 bg-primary-950 px-8 py-10">
+          <p className="text-lg text-primary-200">
+            You have no reservations yet. Check out our{" "}
+            <Link
+              href="/cabins"
+              className="text-accent-500 underline underline-offset-4 transition-colors hover:text-accent-400"
+            >
+              luxury cabins &rarr;
+            </Link>
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {reservations.map((reservation) => (
+            <article
+              key={reservation.id}
+              className="border border-primary-800 bg-primary-950"
+            >
+              <div className="flex items-center justify-between border-b border-primary-800 px-6 py-5">
+                <div>
+                  <p className="mb-1 text-sm text-primary-500">
+                    Reservation #{reservation.id}
+                  </p>
+
+                  <h2 className="text-2xl font-medium text-primary-100">
+                    Cabin {reservation.cabin}
+                  </h2>
+                </div>
+
+                <span className="border border-accent-700 px-3 py-1 text-sm text-accent-400">
+                  {reservation.status}
+                </span>
+              </div>
+
+              <div className="grid gap-6 px-6 py-6 sm:grid-cols-2 lg:grid-cols-4">
+                <div>
+                  <p className="mb-1 text-sm text-primary-500">Check-in</p>
+                  <p className="text-primary-200">{reservation.startDate}</p>
+                </div>
+
+                <div>
+                  <p className="mb-1 text-sm text-primary-500">Check-out</p>
+                  <p className="text-primary-200">{reservation.endDate}</p>
+                </div>
+
+                <div>
+                  <p className="mb-1 text-sm text-primary-500">Guests</p>
+                  <p className="text-primary-200">
+                    {reservation.guests}{" "}
+                    {reservation.guests === 1 ? "guest" : "guests"}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="mb-1 text-sm text-primary-500">Total</p>
+                  <p className="text-primary-200">${reservation.totalPrice}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-primary-800 px-6 py-4">
+                <p className="text-sm text-primary-500">
+                  {reservation.nights}{" "}
+                  {reservation.nights === 1 ? "night" : "nights"}
+                </p>
+
+                <Link
+                  href={`/account/reservations/edit/${reservation.id}`}
+                  className="text-accent-500 transition-colors hover:text-accent-400"
+                >
+                  Edit reservation &rarr;
+                </Link>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+</file>
+
+<file path="app/account/layout.tsx">
+import type { ReactNode } from "react";
+
+import { SideNavigation } from "../components";
+
+type AccountLayoutProps = {
+  children: ReactNode;
+};
+
+export default function AccountLayout({ children }: AccountLayoutProps) {
+  return (
+    <div className="grid grid-cols-1 gap-8 md:grid-cols-[16rem_1fr] md:gap-12">
+      <SideNavigation />
+
+      <div className="py-1">{children}</div>
+    </div>
+  );
+}
+</file>
+
+<file path="app/account/page.tsx">
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Guest area",
+};
+
+export default function Page() {
+  return (
+    <div>
+      <h1 className="mb-5 text-4xl font-medium text-accent-400">Guest area</h1>
+
+      <p className="text-primary-200 text-lg">
+        This is your guest area. Sign in to view your reservations and manage
+        your account.
+      </p>
+    </div>
+  );
+}
+</file>
+
+<file path="app/cabins/[cabinId]/error.tsx">
+"use client";
+
+export default function Error({ reset }: { reset: () => void }) {
+  return (
+    <div className="flex min-h-[60vh] items-center justify-center">
+      <div className="max-w-lg text-center">
+        <h2 className="mb-4 text-3xl font-medium text-accent-400">
+          Couldn&apos;t load this cabin
+        </h2>
+
+        <p className="mb-8 text-lg leading-8 text-primary-200">
+          Something went wrong while loading this cabin. Please try again.
+        </p>
+
+        <button
+          type="button"
+          onClick={reset}
+          className="bg-accent-500 px-6 py-3 font-semibold text-primary-900 transition-colors hover:bg-accent-600"
+        >
+          Try again
+        </button>
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="app/cabins/[cabinId]/not-found.tsx">
+import Link from "next/link";
+
+export default function NotFound() {
+  return (
+    <div className="flex min-h-[60vh] items-center justify-center">
+      <div className="max-w-lg text-center">
+        <h1 className="mb-4 text-3xl font-medium text-accent-400">
+          Cabin not found
+        </h1>
+
+        <p className="mb-8 text-lg leading-8 text-primary-200">
+          We couldn&apos;t find the cabin you&apos;re looking for. It may have
+          been removed or is no longer available.
+        </p>
+
+        <Link
+          href="/cabins"
+          className="inline-flex items-center gap-2 bg-accent-500 px-6 py-3 font-semibold text-primary-900 transition-colors hover:bg-accent-600"
+        >
+          <span aria-hidden="true">←</span>
+          Back to cabins
+        </Link>
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="app/cabins/[cabinId]/page.tsx">
+import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+
+import { CabinDetail } from "@/app/components";
+import { getCabin, getCabins } from "@/app/lib/data-service";
+import type { Cabin } from "@/app/types/cabin";
+
+type PageProps = {
+  params: Promise<{
+    cabinId: string;
+  }>;
+};
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { cabinId } = await params;
+  const cabin = await getCabin(cabinId);
+
+  if (!cabin) {
+    return {
+      title: "Cabin Not Found",
+      description: "The cabin you are looking for does not exist.",
+    };
+  }
+
+  return {
+    title: `Cabin ${cabin.name}`,
+    description: cabin.description,
+  };
+}
+
+export async function generateStaticParams() {
+  const cabins = await getCabins();
+
+  return cabins.map((cabin: Cabin) => ({
+    cabinId: String(cabin.id),
+  }));
+}
+
+export default async function Page({ params }: PageProps) {
+  const { cabinId } = await params;
+  const cabin = await getCabin(cabinId);
+
+  if (!cabin) {
+    notFound();
+  }
+
+  return <CabinDetail cabin={cabin} />;
+}
+</file>
+
+<file path="app/cabins/error.tsx">
+"use client";
+
+export default function Error({ reset }: { reset: () => void }) {
+  return (
+    <div className="flex min-h-[50vh] items-center justify-center">
+      <div className="max-w-lg text-center">
+        <h2 className="mb-4 text-3xl font-medium text-accent-400">
+          Something went wrong
+        </h2>
+
+        <p className="mb-8 text-lg leading-8 text-primary-200">
+          We couldn&apos;t load the cabins right now. Please try again.
+        </p>
+
+        <button
+          type="button"
+          onClick={reset}
+          className="bg-accent-500 px-6 py-3 font-semibold text-primary-900 transition-colors hover:bg-accent-600"
+        >
+          Try again
+        </button>
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="app/cabins/loading.tsx">
+import { Spinner } from "../components";
+
+export default function Loading() {
+  return (
+    <div className="flex min-h-100 items-center justify-center">
+      <div className="flex items-center gap-3 text-sm text-primary-400">
+        <Spinner />
+        <span>Loading cabins...</span>
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="app/components/CabinCard.tsx">
+import Image from "next/image";
+import Link from "next/link";
+import { UsersIcon } from "@heroicons/react/24/solid";
+
+import type { Cabin } from "../types/cabin";
+
+type CabinCardProps = {
+  cabin: Cabin;
+};
+
+export default function CabinCard({ cabin }: CabinCardProps) {
+  const { id, cabinNumber, name, maxCapacity, regularPrice, discount, image } =
+    cabin;
+
+  return (
+    <div className="flex border border-primary-800">
+      <div className="relative flex-1">
+        <Image
+          src={image}
+          fill
+          sizes="(max-width: 270px) 1px, (max-width: 639px) calc(50vw - 134px), (max-width: 767px) calc(50vw - 142px), (max-width: 1023px) calc(25vw - 138px), (max-width: 1279px) calc(25vw - 146px), (max-width: 1353px) calc(25vw - 148px), 188px"
+          alt={`Cabin ${name}`}
+          className="object-cover border-r border-primary-800"
+        />
+      </div>
+
+      <div className="grow">
+        <div className="bg-primary-950 px-7 pt-5 pb-4">
+          <h3 className="text-accent-500 font-semibold text-2xl mb-3">
+            Cabin {cabinNumber}
+          </h3>
+
+          <div className="flex items-center gap-3 mb-2">
+            <UsersIcon className="h-5 w-5 text-primary-600" />
+
+            <p className="text-lg text-primary-200">
+              For up to <span className="font-bold">{maxCapacity}</span> guests
+            </p>
+          </div>
+
+          <p className="flex items-baseline justify-end gap-3">
+            {discount > 0 ? (
+              <>
+                <span className="text-3xl font-[350]">
+                  ${regularPrice - discount}
+                </span>
+
+                <span className="line-through font-semibold text-primary-600">
+                  ${regularPrice}
+                </span>
+              </>
+            ) : (
+              <span className="text-3xl font-[350]">${regularPrice}</span>
+            )}
+
+            <span className="text-primary-200">/ night</span>
+          </p>
+        </div>
+
+        <div className="bg-primary-950 border-t border-primary-800 text-right">
+          <Link
+            href={`/cabins/${id}`}
+            className="inline-block border-l border-primary-800 px-6 py-4 transition-all hover:bg-accent-600 hover:text-primary-900"
+          >
+            Details & reservation &rarr;
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="app/components/CabinDetail.tsx">
+import Image from "next/image";
+import Link from "next/link";
+
+import type { Cabin } from "@/app/types/cabin";
+
+import { CabinReservation } from ".";
+
+export default function CabinDetail({ cabin }: { cabin: Cabin }) {
+  const discountedPrice = Math.max(cabin.regularPrice - cabin.discount, 0);
+
+  return (
+    <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <h1 className="text-2xl font-semibold tracking-tight text-primary-100">
+          Cabin #{cabin.cabinNumber}
+        </h1>
+
+        <Link
+          href="/cabins"
+          className="inline-flex items-center gap-2 border border-primary-800 bg-primary-900 px-4 py-2 text-sm font-medium text-primary-100 transition-colors hover:border-accent-500 hover:bg-accent-500 hover:text-primary-900"
+        >
+          <span aria-hidden="true">←</span>
+          Back to cabins
+        </Link>
+      </div>
+
+      <section className="overflow-hidden border border-primary-800 bg-primary-950">
+        <div className="relative aspect-16/7 w-full">
+          <Image
+            src={cabin.image}
+            alt={`Cabin ${cabin.name}`}
+            fill
+            priority
+            className="object-cover"
+            sizes="(max-width: 1024px) 100vw, 1200px"
+          />
+        </div>
+
+        <div className="grid gap-8 p-6 lg:grid-cols-[1fr_320px] lg:p-8">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="bg-primary-800 px-2.5 py-1 text-xs font-medium text-primary-100">
+                Cabin
+              </span>
+
+              <span className="bg-primary-800 px-2.5 py-1 text-xs font-medium text-primary-100">
+                Up to {cabin.maxCapacity} guests
+              </span>
+
+              {cabin.discount > 0 && (
+                <span className="bg-green-950 px-2.5 py-1 text-xs font-medium text-green-300">
+                  ${cabin.discount} discount
+                </span>
+              )}
+            </div>
+
+            <h2 className="mt-5 text-xl font-semibold text-primary-100">
+              {cabin.name}
+            </h2>
+
+            <p className="mt-4 max-w-3xl text-sm leading-6 text-primary-300">
+              {cabin.description}
+            </p>
+
+            <div className="mt-8 grid gap-4 border-t border-primary-800 pt-6 sm:grid-cols-3">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-primary-500">
+                  Capacity
+                </p>
+                <p className="mt-1 text-sm font-medium text-primary-100">
+                  {cabin.maxCapacity} guests
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-primary-500">
+                  Regular price
+                </p>
+                <p className="mt-1 text-sm font-medium text-primary-100">
+                  ${cabin.regularPrice}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-primary-500">
+                  Final price
+                </p>
+                <p className="mt-1 text-sm font-semibold text-accent-400">
+                  ${discountedPrice}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <CabinReservation cabin={cabin} />
+        </div>
+      </section>
+    </div>
+  );
+}
+</file>
+
+<file path="app/components/CabinList.tsx">
+import type { Cabin } from "../types/cabin";
+import CabinCard from "./CabinCard";
+
+type CabinListProps = {
+  cabins: Cabin[];
+};
+
+export default function CabinList({ cabins }: CabinListProps) {
+  if (cabins.length === 0) {
+    return (
+      <div className="rounded-md border border-primary-800 p-8 text-center">
+        <h2 className="mb-2 text-lg font-medium text-primary-100">
+          No cabins available
+        </h2>
+
+        <p className="text-sm text-primary-400">
+          There are currently no cabins available. Please check back later.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:gap-12 xl:gap-14">
+      {cabins.map((cabin) => (
+        <CabinCard cabin={cabin} key={cabin.id} />
+      ))}
+    </div>
+  );
+}
+</file>
+
+<file path="app/components/CabinReservation.tsx">
+"use client";
+
+import { useMemo, useState, type FormEvent } from "react";
+
+import type { Cabin } from "@/app/types/cabin";
+
+function getDefaultDates() {
+  const start = new Date();
+  start.setDate(start.getDate() + 3);
+
+  const end = new Date(start);
+  end.setDate(end.getDate() + 4);
+
+  return {
+    startDate: start.toISOString().slice(0, 10),
+    endDate: end.toISOString().slice(0, 10),
+  };
+}
+
+export default function CabinReservation({ cabin }: { cabin: Cabin }) {
+  const defaultDates = useMemo(() => getDefaultDates(), []);
+  const [reservation, setReservation] = useState({
+    startDate: defaultDates.startDate,
+    endDate: defaultDates.endDate,
+    guests: Math.min(cabin.maxCapacity, 2),
+    notes: "",
+  });
+  const [statusMessage, setStatusMessage] = useState("");
+
+  const nights = useMemo(() => {
+    const start = new Date(reservation.startDate);
+    const end = new Date(reservation.endDate);
+
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+      return 0;
+    }
+
+    const diffInMs = end.getTime() - start.getTime();
+    return Math.max(Math.ceil(diffInMs / (1000 * 60 * 60 * 24)), 0);
+  }, [reservation.startDate, reservation.endDate]);
+
+  const discountedPrice = Math.max(cabin.regularPrice - cabin.discount, 0);
+  const totalPrice = nights > 0 ? nights * discountedPrice : 0;
+
+  const guestOptions = useMemo(() => {
+    return Array.from({ length: cabin.maxCapacity }, (_, index) => index + 1);
+  }, [cabin.maxCapacity]);
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!reservation.startDate || !reservation.endDate || nights <= 0) {
+      setStatusMessage("Choose a valid check-in and check-out date.");
+      return;
+    }
+
+    if (new Date(reservation.endDate) <= new Date(reservation.startDate)) {
+      setStatusMessage("Check-out must be after check-in.");
+      return;
+    }
+
+    setStatusMessage(
+      `Reservation summary for ${cabin.name}: ${nights} ${
+        nights === 1 ? "night" : "nights"
+      } for ${reservation.guests} ${
+        reservation.guests === 1 ? "guest" : "guests"
+      }.`,
+    );
+  };
+
+  return (
+    <aside className="border border-primary-800 bg-primary-900/50 p-5">
+      <p className="text-sm font-medium text-primary-400">Price per night</p>
+
+      <div className="mt-2 flex items-baseline gap-2">
+        <span className="text-3xl font-semibold text-primary-50">
+          ${discountedPrice}
+        </span>
+        <span className="text-sm text-primary-400">/ night</span>
+      </div>
+
+      {cabin.discount > 0 && (
+        <p className="mt-2 text-sm text-primary-400">
+          Regular price: <span className="line-through">${cabin.regularPrice}</span>
+        </p>
+      )}
+
+      <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="block text-sm text-primary-200">
+            <span className="mb-1 block text-xs uppercase tracking-wide text-primary-500">
+              Check-in
+            </span>
+            <input
+              type="date"
+              value={reservation.startDate}
+              onChange={(event) =>
+                setReservation((current) => ({
+                  ...current,
+                  startDate: event.target.value,
+                }))
+              }
+              className="w-full border border-primary-700 bg-primary-950 px-3 py-2 text-primary-100 outline-none transition-colors focus:border-accent-500"
+            />
+          </label>
+
+          <label className="block text-sm text-primary-200">
+            <span className="mb-1 block text-xs uppercase tracking-wide text-primary-500">
+              Check-out
+            </span>
+            <input
+              type="date"
+              value={reservation.endDate}
+              onChange={(event) =>
+                setReservation((current) => ({
+                  ...current,
+                  endDate: event.target.value,
+                }))
+              }
+              className="w-full border border-primary-700 bg-primary-950 px-3 py-2 text-primary-100 outline-none transition-colors focus:border-accent-500"
+            />
+          </label>
+        </div>
+
+        <label className="block text-sm text-primary-200">
+          <span className="mb-1 block text-xs uppercase tracking-wide text-primary-500">
+            Guests
+          </span>
+          <select
+            value={reservation.guests}
+            onChange={(event) =>
+              setReservation((current) => ({
+                ...current,
+                guests: Number(event.target.value),
+              }))
+            }
+            className="w-full border border-primary-700 bg-primary-950 px-3 py-2 text-primary-100 outline-none transition-colors focus:border-accent-500"
+          >
+            {guestOptions.map((option) => (
+              <option key={option} value={option}>
+                {option} {option === 1 ? "guest" : "guests"}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="block text-sm text-primary-200">
+          <span className="mb-1 block text-xs uppercase tracking-wide text-primary-500">
+            Notes
+          </span>
+          <textarea
+            value={reservation.notes}
+            onChange={(event) =>
+              setReservation((current) => ({
+                ...current,
+                notes: event.target.value,
+              }))
+            }
+            rows={3}
+            className="w-full resize-none border border-primary-700 bg-primary-950 px-3 py-2 text-primary-100 outline-none transition-colors focus:border-accent-500"
+            placeholder="Anything we should know?"
+          />
+        </label>
+
+        <div className="rounded border border-primary-700 bg-primary-950 p-3 text-sm text-primary-200">
+          <div className="flex items-center justify-between gap-2">
+            <span>{nights} nights</span>
+            <span>${totalPrice}</span>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          className="w-full bg-accent-500 px-4 py-2.5 text-sm font-semibold text-primary-900 transition-colors hover:bg-accent-600"
+        >
+          Reserve cabin
+        </button>
+
+        {statusMessage ? (
+          <p className="text-sm text-accent-400">{statusMessage}</p>
+        ) : null}
+      </form>
+    </aside>
+  );
+}
+</file>
+
+<file path="app/components/Header.tsx">
+"use client";
+
+import { usePathname } from "next/navigation";
+
+import Logo from "./Logo";
+import Navigation from "./Navigation";
+
+export default function Header() {
+  const pathname = usePathname();
+  const isHomePage = pathname === "/";
+
+  return (
+    <header
+      className={
+        isHomePage
+          ? "absolute inset-x-0 top-0 z-50 px-3 py-3 sm:px-6 sm:py-4 lg:px-8 lg:py-5"
+          : "relative z-20 px-3 py-3 sm:px-6 sm:py-4 lg:px-8 lg:py-5"
+      }
+    >
+      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 sm:gap-6">
+        <Logo />
+        <Navigation />
+      </div>
+    </header>
+  );
+}
+</file>
+
+<file path="app/components/index.ts">
+export { default as Navigation } from "./Navigation";
+export { default as Logo } from "./Logo";
+export { default as Header } from "./Header";
+export { default as CabinList } from "./CabinList";
+export { default as CabinCard } from "./CabinCard";
+export { default as SideNavigation } from "./SideNavigation";
+export { default as SignOutButton } from "./SignOutButton";
+export { default as Spinner } from "./Spinner";
+export { default as CabinDetail } from "./CabinDetail";
+export { default as CabinReservation } from "./CabinReservation";
+</file>
+
+<file path="app/components/Logo.tsx">
+import Image from "next/image";
+import Link from "next/link";
+
+export default function Logo() {
+  return (
+    <Link href="/" className="flex shrink-0 items-center gap-2 sm:gap-3 lg:gap-4">
+      <Image
+        src="/logo.png"
+        width={60}
+        height={60}
+        alt="The Wild Oasis logo"
+        loading="eager"
+        className="h-9 w-9 sm:h-12 sm:w-12 lg:h-15 lg:w-15"
+      />
+
+      <span className="text-sm font-semibold text-primary-100 sm:text-base lg:text-xl">
+        The Wild Oasis
+      </span>
+    </Link>
+  );
+}
+</file>
+
+<file path="app/components/Navigation.tsx">
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+const navItems = [
+  {
+    href: "/cabins",
+    label: "Cabins",
+  },
+  {
+    href: "/about",
+    label: "About",
+  },
+  {
+    href: "/account",
+    label: "Guest area",
+  },
+];
+
+export default function Navigation() {
+  const pathname = usePathname();
+
+  return (
+    <nav>
+      {/* Desktop navigation */}
+      <ul className="hidden items-center gap-6 text-base lg:flex lg:gap-8 lg:text-lg">
+        {navItems.map((item) => {
+          const isActive =
+            pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+          return (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                aria-current={isActive ? "page" : undefined}
+                className={`transition-colors ${
+                  isActive
+                    ? "text-accent-400"
+                    : "text-primary-100 hover:text-accent-400"
+                }`}
+              >
+                {item.label}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+
+      {/* Mobile navigation */}
+      <details className="relative lg:hidden">
+        <summary className="list-none cursor-pointer border border-primary-800 px-4 py-2 text-sm font-semibold transition-colors hover:bg-primary-900 [&::-webkit-details-marker]:hidden">
+          Menu
+        </summary>
+
+        <div className="absolute right-0 top-full mt-2 w-48 border border-primary-800 bg-primary-950 shadow-lg">
+          <ul className="flex flex-col py-2">
+            {navItems.map((item) => {
+              const isActive =
+                pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    aria-current={isActive ? "page" : undefined}
+                    className={`block px-4 py-3 text-sm transition-colors ${
+                      isActive
+                        ? "bg-primary-900 text-accent-400"
+                        : "hover:bg-primary-900 hover:text-accent-400"
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </details>
+    </nav>
+  );
+}
+</file>
+
+<file path="app/components/SideNavigation.tsx">
+"use client";
+
+import Link from "next/link";
+import {
+  CalendarDaysIcon,
+  HomeIcon,
+  UserIcon,
+} from "@heroicons/react/24/solid";
+import { usePathname } from "next/navigation";
+
+import SignOutButton from "./SignOutButton";
+
+const navLinks = [
+  {
+    name: "Home",
+    href: "/account",
+    icon: HomeIcon,
+  },
+  {
+    name: "Reservations",
+    href: "/account/reservations",
+    icon: CalendarDaysIcon,
+  },
+  {
+    name: "Guest profile",
+    href: "/account/profile",
+    icon: UserIcon,
+  },
+];
+
+export default function SideNavigation() {
+  const pathname = usePathname();
+
+  return (
+    <nav className="flex flex-col">
+      <ul className="flex flex-col gap-2 text-lg">
+        {navLinks.map((link) => {
+          const Icon = link.icon;
+          const isActive =
+            pathname === link.href || pathname.startsWith(`${link.href}/`);
+
+          return (
+            <li key={link.href}>
+              <Link
+                href={link.href}
+                aria-current={isActive ? "page" : undefined}
+                className={`flex items-center gap-4 px-5 py-3 font-semibold transition-colors ${
+                  isActive
+                    ? "bg-primary-900 text-primary-100"
+                    : "text-primary-200 hover:bg-primary-900 hover:text-primary-100"
+                }`}
+              >
+                <Icon className="h-5 w-5 text-primary-600" />
+                <span>{link.name}</span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+
+      <div className="mt-6 border-t border-primary-900 pt-2">
+        <SignOutButton />
+      </div>
+    </nav>
+  );
+}
+</file>
+
+<file path="app/components/SignOutButton.tsx">
+import { ArrowRightOnRectangleIcon } from "@heroicons/react/24/solid";
+
+export default function SignOutButton() {
+  return (
+    <button
+      type="button"
+      className="flex w-full items-center gap-4 px-5 py-3 font-semibold text-primary-200 transition-colors hover:bg-primary-900 hover:text-primary-100"
+    >
+      <ArrowRightOnRectangleIcon className="h-5 w-5 text-primary-600" />
+
+      <span>Sign out</span>
+    </button>
+  );
+}
+</file>
+
+<file path="app/components/Spinner.tsx">
+type SpinnerProps = {
+  size?: "sm" | "md" | "lg";
+  className?: string;
+};
+
+export default function Spinner({ size = "md", className = "" }: SpinnerProps) {
+  const sizeClass = {
+    sm: "size-4",
+    md: "size-5",
+    lg: "size-7",
+  }[size];
+
+  return (
+    <span
+      role="status"
+      aria-label="Loading"
+      className={`inline-block animate-spin rounded-full border-2 border-current border-r-transparent ${sizeClass} ${className}`}
+    />
+  );
+}
+</file>
+
+<file path="app/lib/queries/cabin-queries.ts">
+// app/lib/queries/cabin-queries.ts
+import { queryOptions } from "@tanstack/react-query";
+
+import { getCabin, getCabins } from "../data-service";
+
+export const cabinQueries = {
+  list: () =>
+    queryOptions({
+      queryKey: ["cabins", "list"],
+      queryFn: () => getCabins(),
+    }),
+
+  detail: (cabinId: string) =>
+    queryOptions({
+      queryKey: ["cabins", "detail", cabinId],
+      queryFn: () => getCabin(cabinId),
+    }),
+};
+</file>
+
+<file path="app/lib/supabase/client.ts">
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabasePublishableKey =
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
+
+export const supabase = createClient(supabaseUrl, supabasePublishableKey);
+</file>
+
+<file path="app/lib/data-service.ts">
+import { cacheLife, cacheTag } from "next/cache";
+
+import { capacityRanges, type CabinFilter } from "./data";
+import type { Cabin } from "../types/cabin";
+import { supabase } from "./supabase/client";
+
+export async function getCabins(filter: CabinFilter = "all"): Promise<Cabin[]> {
+  "use cache";
+  const startedAt = performance.now();
+  cacheLife("hours");
+  cacheTag("cabins");
+
+  let query = supabase
+    .from("cabins")
+    .select(
+      "id, name, maxCapacity, regularPrice, discount, image, description, cabin_number",
+    );
+
+  if (filter !== "all") {
+    const [minCapacity, maxCapacity] = capacityRanges[filter];
+    query = query
+      .gte("maxCapacity", minCapacity)
+      .lte("maxCapacity", maxCapacity);
+  }
+
+  const queryStartedAt = performance.now();
+  const { data, error } = await query;
+  const queryDurationMs = performance.now() - queryStartedAt;
+
+  console.info(
+    "[cabin-perf]",
+    JSON.stringify({
+      event: "supabase-query-complete",
+      filter,
+      durationMs: Number(queryDurationMs.toFixed(1)),
+    }),
+  );
+
+  if (error) {
+    throw new Error("Cabins could not be loaded");
+  }
+
+  const cabins = data.map((cabin) => ({
+    ...cabin,
+    cabinNumber: cabin.cabin_number,
+  }));
+
+  console.info(
+    "[cabin-perf]",
+    JSON.stringify({
+      event: "getCabins-cache-function-complete",
+      filter,
+      durationMs: Number((performance.now() - startedAt).toFixed(1)),
+    }),
+  );
+
+  return cabins;
+}
+
+export async function getCabin(cabinId: string): Promise<Cabin | null> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("cabins", `cabin-${cabinId}`);
+
+  const { data, error } = await supabase
+    .from("cabins")
+    .select("*")
+    .eq("id", cabinId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error("Cabin could not be loaded");
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return {
+    ...data,
+    cabinNumber: data.cabin_number,
+  };
+}
+</file>
+
+<file path="app/lib/data.ts">
+import type { CabinFilter } from "../types/cabin";
+
+export type { CabinFilter } from "../types/cabin";
+
+export const capacityRanges: Record<
+  Exclude<CabinFilter, "all">,
+  readonly [number, number]
+> = {
+  "2-3": [2, 3],
+  "4-7": [4, 7],
+  "8-12": [8, 12],
+};
+
+export function isCapacityFilter(
+  value: unknown,
+): value is Exclude<CabinFilter, "all"> {
+  return (
+    typeof value === "string" &&
+    Object.prototype.hasOwnProperty.call(capacityRanges, value)
+  );
+}
+</file>
+
+<file path="app/styles/globals.css">
+@import "tailwindcss";
+
+@theme {
+  --color-primary-50: #e1e8ef;
+  --color-primary-100: #d4dee7;
+  --color-primary-200: #b7c7d7;
+  --color-primary-300: #99b0c7;
+  --color-primary-400: #7c99b6;
+  --color-primary-500: #5e82a6;
+  --color-primary-600: #4c6b8a;
+  --color-primary-700: #3c546c;
+  --color-primary-800: #2c3d4f;
+  --color-primary-900: #1b2631;
+  --color-primary-950: #141c24;
+
+  --color-accent-50: #faf5f0;
+  --color-accent-100: #f4ece1;
+  --color-accent-200: #e8d6bf;
+  --color-accent-300: #ddc2a2;
+  --color-accent-400: #d2af84;
+  --color-accent-500: #c69963;
+  --color-accent-600: #b78343;
+  --color-accent-700: #926835;
+  --color-accent-800: #6c4d28;
+  --color-accent-900: #4b351b;
+  --color-accent-950: #382814;
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+body {
+  min-height: 100vh;
+}
+
+@layer components {
+  @keyframes rotate {
+    to {
+      transform: rotate(1turn);
+    }
+  }
+}
+
+.rdp {
+  --rdp-cell-size: 32px !important;
+  --rdp-accent-color: var(--color-accent-500) !important;
+  --rdp-background-color: var(--color-accent-600) !important;
+  margin: 0 !important;
+}
+</file>
+
+<file path="app/types/cabin.ts">
+export type CabinFilter = "all" | "2-3" | "4-7" | "8-12";
+
+export type Cabin = {
+  id: string;
+  cabinNumber: string;
+  name: string;
+  maxCapacity: number;
+  regularPrice: number;
+  discount: number;
+  image: string;
+  description: string;
+};
+</file>
+
+<file path="app/providers.tsx">
+"use client";
+
+import { useState, type ReactNode } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+function createQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 60_000,
+      },
+    },
+  });
+}
+
+export default function Providers({ children }: { children: ReactNode }) {
+  const [queryClient] = useState(createQueryClient);
+
+  return (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+}
+</file>
+
+<file path=".gitignore">
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+</file>
+
+<file path="AGENTS.md">
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
+</file>
+
+<file path="CLAUDE.md">
+@AGENTS.md
+</file>
+
+<file path="eslint.config.mjs">
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTs from "eslint-config-next/typescript";
+
+const eslintConfig = defineConfig([
+  ...nextVitals,
+  ...nextTs,
+  // Override default ignores of eslint-config-next.
+  globalIgnores([
+    // Default ignores of eslint-config-next:
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+  ]),
+]);
+
+export default eslintConfig;
+</file>
+
+<file path="postcss.config.mjs">
+const config = {
+  plugins: {
+    "@tailwindcss/postcss": {},
+  },
+};
+
+export default config;
+</file>
+
+<file path="README.md">
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+</file>
+
+<file path="tsconfig.json">
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
+}
+</file>
+
+<file path="app/cabins/page.tsx">
+import type { Metadata } from "next";
+
+import CabinBrowser from "../components/CabinBrowser";
+import { isCapacityFilter, type CabinFilter } from "../lib/data";
+import { getCabins } from "../lib/data-service";
+
+export const metadata: Metadata = {
+  title: "Cabins",
+};
+
+export default async function Page({ searchParams }: PageProps<"/cabins">) {
+  const { capacity } = await searchParams;
+  const initialFilter: CabinFilter = isCapacityFilter(capacity)
+    ? capacity
+    : "all";
+  // eslint-disable-next-line react-hooks/purity -- request-scoped server timing
+  const cabinsStartedAt = performance.now();
+  const cabins = await getCabins();
+
+  console.info(
+    "[cabin-perf]",
+    JSON.stringify({
+      event: "getCabins-call-complete",
+      filter: "all",
+      // eslint-disable-next-line react-hooks/purity -- request-scoped server timing
+      durationMs: Number((performance.now() - cabinsStartedAt).toFixed(1)),
+    }),
+  );
+
+  return (
+    <div>
+      <h1 className="mb-5 text-4xl font-medium text-accent-400">
+        Our Luxury Cabins
+      </h1>
+
+      <p className="mb-10 max-w-4xl text-lg text-primary-200">
+        Cozy yet luxurious cabins, located right in the heart of the Italian
+        Dolomites. Imagine waking up to beautiful mountain views, spending your
+        days exploring the dark forests around, or just relaxing in your private
+        hot tub under the stars. Enjoy nature&apos;s beauty in your own little
+        home away from home. The perfect spot for a peaceful, calm vacation.
+        Welcome to paradise.
+      </p>
+
+      <CabinBrowser cabins={cabins} initialFilter={initialFilter} />
+    </div>
+  );
+}
+</file>
+
+<file path="app/components/CabinBrowser.tsx">
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
+import CabinList from "./CabinList";
+import {
+  capacityRanges,
+  isCapacityFilter,
+  type CabinFilter,
+} from "@/app/lib/data";
+import type { Cabin } from "../types/cabin";
+
+const filters: Array<{ value: CabinFilter; label: string }> = [
+  { value: "all", label: "All cabins" },
+  { value: "2-3", label: "2—3 guests" },
+  { value: "4-7", label: "4—7 guests" },
+  { value: "8-12", label: "8—12 guests" },
+];
+
+function getSelectionMarkName(filter: CabinFilter) {
+  return `cabin-filter-selected:${filter}`;
+}
+
+export default function CabinBrowser({
+  cabins,
+  initialFilter,
+}: {
+  cabins: Cabin[];
+  initialFilter: CabinFilter;
+}) {
+  const [filter, setFilter] = useState(initialFilter);
+  const previousFilter = useRef(initialFilter);
+
+  useEffect(() => {
+    function syncFilterFromUrl() {
+      const capacityParams = new URLSearchParams(
+        window.location.search,
+      ).getAll("capacity");
+
+      setFilter(
+        capacityParams.length === 1 && isCapacityFilter(capacityParams[0])
+          ? capacityParams[0]
+          : "all",
+      );
+    }
+
+    window.addEventListener("popstate", syncFilterFromUrl);
+
+    return () => window.removeEventListener("popstate", syncFilterFromUrl);
+  }, []);
+
+  useEffect(() => {
+    if (previousFilter.current === filter) {
+      return;
+    }
+
+    previousFilter.current = filter;
+
+    const startMark = getSelectionMarkName(filter);
+    const [startEntry] = performance.getEntriesByName(startMark, "mark");
+
+    if (!startEntry) {
+      return;
+    }
+
+    let secondFrame = 0;
+    const firstFrame = requestAnimationFrame(() => {
+      secondFrame = requestAnimationFrame(() => {
+        if (!performance.getEntriesByName(startMark, "mark").length) {
+          return;
+        }
+
+        const endMark = `cabin-filter-results-visible:${filter}`;
+        performance.mark(endMark);
+        performance.measure(
+          `cabin-filter-results-visible:${filter}`,
+          startMark,
+          endMark,
+        );
+
+        console.info(
+          "[cabin-perf]",
+          JSON.stringify({
+            event: "results-visible",
+            filter,
+            durationMs: Number(
+              (performance.now() - startEntry.startTime).toFixed(1),
+            ),
+          }),
+        );
+
+        performance.clearMarks(startMark);
+        performance.clearMarks(endMark);
+      });
+    });
+
+    return () => {
+      cancelAnimationFrame(firstFrame);
+      cancelAnimationFrame(secondFrame);
+    };
+  }, [filter]);
+
+  let visibleCabins = cabins;
+
+  if (filter !== "all") {
+    const [minCapacity, maxCapacity] = capacityRanges[filter];
+    visibleCabins = cabins.filter(
+      (cabin) =>
+        cabin.maxCapacity >= minCapacity && cabin.maxCapacity <= maxCapacity,
+    );
+  }
+
+  function handleFilterChange(nextFilter: CabinFilter) {
+    for (const item of filters) {
+      performance.clearMarks(getSelectionMarkName(item.value));
+    }
+    performance.mark(getSelectionMarkName(nextFilter));
+
+    const params = new URLSearchParams(window.location.search);
+
+    if (nextFilter === "all") {
+      params.delete("capacity");
+    } else {
+      params.set("capacity", nextFilter);
+    }
+
+    const queryString = params.toString();
+    const url = new URL(window.location.href);
+    url.search = queryString;
+    window.history.pushState(null, "", url);
+    setFilter(nextFilter);
+  }
+
+  return (
+    <>
+      <div className="mb-4 flex justify-end">
+        <div className="flex border border-primary-800">
+          {filters.map((item) => {
+            const isActive = filter === item.value;
+
+            return (
+              <button
+                key={item.value}
+                type="button"
+                aria-pressed={isActive}
+                onClick={() => handleFilterChange(item.value)}
+                className={`px-5 py-2 text-sm font-medium transition-colors ${
+                  isActive
+                    ? "bg-accent-500 text-primary-900"
+                    : "hover:bg-primary-900"
+                }`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <CabinList cabins={visibleCabins} />
+    </>
+  );
+}
+</file>
+
+<file path="app/layout.tsx">
+import type { Metadata } from "next";
+import { Josefin_Sans } from "next/font/google";
+
+import "@/app/styles/globals.css";
+import { Header } from "./components";
+
+const josefin = Josefin_Sans({
+  subsets: ["latin"],
+  display: "swap",
+});
+
+export const metadata: Metadata = {
+  title: {
+    default: "Welcome | The Wild Oasis",
+    template: "%s | The Wild Oasis",
+  },
+  description:
+    "Luxurious cabin hotel, located in the heart of the Italian Dolomites, surrounded by beautiful mountains and dark forests",
+};
+
+export default function RootLayout({ children }: LayoutProps<"/">) {
+  return (
+    <html lang="en">
+      <body
+        className={`${josefin.className} flex min-h-screen flex-col overflow-x-hidden bg-primary-950 text-primary-100 antialiased`}
+      >
+        <Header />
+
+        <main className="flex-1 px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
+          <div className="mx-auto w-full max-w-7xl">{children}</div>
+        </main>
+      </body>
+    </html>
+  );
+}
+</file>
+
+<file path="app/page.tsx">
+import Image from "next/image";
+import Link from "next/link";
+
+import bg from "@/public/bg.png";
+
+export default function Page() {
+  return (
+    <div className="fixed inset-0 z-0 isolate overflow-hidden bg-primary-950">
+      <Image
+        src={bg}
+        fill
+        priority
+        placeholder="blur"
+        quality={80}
+        sizes="100vw"
+        className="object-cover object-center"
+        alt="Mountains and forests with two cabins"
+      />
+
+      <div className="absolute inset-0 bg-gradient-to-b from-primary-950/65 via-primary-950/15 to-primary-950/55" />
+
+      <div className="relative z-10 flex h-full -translate-y-[14vh] items-center justify-center px-4 text-center sm:px-6">
+        <div className="w-full max-w-5xl">
+          <h1 className="mx-auto mb-5 max-w-[12ch] text-4xl font-medium leading-[1.08] tracking-tight text-primary-50 drop-shadow-lg sm:mb-6 sm:max-w-none sm:text-5xl md:text-6xl lg:text-7xl">
+            Welcome to paradise.
+          </h1>
+
+          <div className="flex justify-center">
+            <Link
+              href="/cabins"
+              className="inline-flex min-h-12 items-center justify-center bg-accent-500 px-7 py-3 text-base font-semibold text-primary-800 transition-colors hover:bg-accent-600 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent-300 sm:px-8 sm:py-4 sm:text-lg"
+            >
+              Explore luxury cabins
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+</file>
+
+<file path="next.config.ts">
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  cacheComponents: true,
+  images: {
+    qualities: [75, 80],
+  },
+};
+
+export default nextConfig;
+</file>
+
+<file path="package.json">
+{
+  "name": "first-next-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@heroicons/react": "^2.2.0",
+    "@supabase/supabase-js": "^2.115.0",
+    "@tanstack/react-query": "^5.103.2",
+    "next": "16.3.3",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.3",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
+</file>
+
+</files>

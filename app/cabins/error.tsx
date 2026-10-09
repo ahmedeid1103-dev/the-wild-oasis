@@ -1,6 +1,6 @@
 "use client";
 
-export default function Error({ reset }: { reset: () => void }) {
+export default function Error({ retry }: { retry: () => void }) {
   return (
     <div className="flex min-h-[50vh] items-center justify-center">
       <div className="max-w-lg text-center">
@@ -14,7 +14,7 @@ export default function Error({ reset }: { reset: () => void }) {
 
         <button
           type="button"
-          onClick={reset}
+          onClick={retry}
           className="bg-accent-500 px-6 py-3 font-semibold text-primary-900 transition-colors hover:bg-accent-600"
         >
           Try again

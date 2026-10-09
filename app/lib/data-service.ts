@@ -1,26 +1,18 @@
 import { cacheLife, cacheTag } from "next/cache";
 
-import { capacityRanges, type CabinFilter } from "./data";
 import type { Cabin } from "../types/cabin";
 import { supabase } from "./supabase/client";
 
-export async function getCabins(filter: CabinFilter = "all"): Promise<Cabin[]> {
+export async function getCabins(): Promise<Cabin[]> {
   "use cache";
   cacheLife("hours");
   cacheTag("cabins");
 
-  let query = supabase
+  const query = supabase
     .from("cabins")
     .select(
       "id, name, maxCapacity, regularPrice, discount, image, description, cabin_number",
     );
-
-  if (filter !== "all") {
-    const [minCapacity, maxCapacity] = capacityRanges[filter];
-    query = query
-      .gte("maxCapacity", minCapacity)
-      .lte("maxCapacity", maxCapacity);
-  }
 
   const { data, error } = await query;
 

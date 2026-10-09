@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -20,6 +21,13 @@ const navItems = [
 
 export default function Navigation() {
   const pathname = usePathname();
+  const mobileMenuRef = useRef<HTMLDetailsElement>(null);
+
+  useEffect(() => {
+    if (mobileMenuRef.current) {
+      mobileMenuRef.current.open = false;
+    }
+  }, [pathname]);
 
   return (
     <nav>
@@ -48,7 +56,7 @@ export default function Navigation() {
       </ul>
 
       {/* Mobile navigation */}
-      <details className="relative lg:hidden">
+      <details ref={mobileMenuRef} className="relative lg:hidden">
         <summary className="list-none cursor-pointer border border-primary-800 px-4 py-2 text-sm font-semibold transition-colors hover:bg-primary-900 [&::-webkit-details-marker]:hidden">
           Menu
         </summary>

@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import type { Cabin } from "@/app/types/cabin";
 
-import { CabinReservation } from ".";
+import CabinReservation from "./CabinReservation";
 
 export default function CabinDetail({ cabin }: { cabin: Cabin }) {
   const discountedPrice = Math.max(cabin.regularPrice - cabin.discount, 0);
