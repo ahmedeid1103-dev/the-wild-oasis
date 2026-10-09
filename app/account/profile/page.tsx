@@ -48,7 +48,7 @@ export default function Page() {
             type="email"
             defaultValue="jonas@example.com"
             disabled
-            className="w-full border border-primary-800 bg-primary-900 px-5 py-3 text-primary-500"
+            className="w-full border border-primary-700 bg-primary-900 px-5 py-3 text-primary-400"
           />
         </div>
 

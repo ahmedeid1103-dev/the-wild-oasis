@@ -8,7 +8,7 @@ type CabinListProps = {
 export default function CabinList({ cabins }: CabinListProps) {
   if (cabins.length === 0) {
     return (
-      <div className="rounded-md border border-primary-800 p-8 text-center">
+      <div className="border border-primary-800 p-8 text-center">
         <h2 className="mb-2 text-lg font-medium text-primary-100">
           No cabins available
         </h2>

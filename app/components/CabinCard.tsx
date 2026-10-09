@@ -45,7 +45,7 @@ export default function CabinCard({ cabin }: CabinCardProps) {
                   ${regularPrice - discount}
                 </span>
 
-                <span className="line-through font-semibold text-primary-600">
+                <span className="line-through font-semibold text-primary-400">
                   ${regularPrice}
                 </span>
               </>

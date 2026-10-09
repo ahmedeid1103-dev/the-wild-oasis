@@ -62,7 +62,7 @@ export default function Page() {
             >
               <div className="flex items-center justify-between border-b border-primary-800 px-6 py-5">
                 <div>
-                  <p className="mb-1 text-sm text-primary-500">
+                  <p className="mb-1 text-sm text-primary-400">
                     Reservation #{reservation.id}
                   </p>
 
@@ -78,17 +78,17 @@ export default function Page() {
 
               <div className="grid gap-6 px-6 py-6 sm:grid-cols-2 lg:grid-cols-4">
                 <div>
-                  <p className="mb-1 text-sm text-primary-500">Check-in</p>
+                  <p className="mb-1 text-sm text-primary-400">Check-in</p>
                   <p className="text-primary-200">{reservation.startDate}</p>
                 </div>
 
                 <div>
-                  <p className="mb-1 text-sm text-primary-500">Check-out</p>
+                  <p className="mb-1 text-sm text-primary-400">Check-out</p>
                   <p className="text-primary-200">{reservation.endDate}</p>
                 </div>
 
                 <div>
-                  <p className="mb-1 text-sm text-primary-500">Guests</p>
+                  <p className="mb-1 text-sm text-primary-400">Guests</p>
                   <p className="text-primary-200">
                     {reservation.guests}{" "}
                     {reservation.guests === 1 ? "guest" : "guests"}
@@ -96,13 +96,13 @@ export default function Page() {
                 </div>
 
                 <div>
-                  <p className="mb-1 text-sm text-primary-500">Total</p>
+                  <p className="mb-1 text-sm text-primary-400">Total</p>
                   <p className="text-primary-200">${reservation.totalPrice}</p>
                 </div>
               </div>
 
               <div className="flex items-center justify-between border-t border-primary-800 px-6 py-4">
-                <p className="text-sm text-primary-500">
+                <p className="text-sm text-primary-400">
                   {reservation.nights}{" "}
                   {reservation.nights === 1 ? "night" : "nights"}
                 </p>

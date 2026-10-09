@@ -83,7 +83,7 @@ export default function CabinReservation({ cabin }: { cabin: Cabin }) {
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block text-sm text-primary-200">
-            <span className="mb-1 block text-xs uppercase tracking-wide text-primary-500">
+            <span className="mb-1 block text-xs uppercase tracking-wide text-primary-400">
               Check-in
             </span>
             <input
@@ -95,12 +95,12 @@ export default function CabinReservation({ cabin }: { cabin: Cabin }) {
                   startDate: event.target.value,
                 }))
               }
-              className="w-full border border-primary-700 bg-primary-950 px-3 py-2 text-primary-100 outline-none transition-colors focus:border-accent-500"
+              className="w-full border border-primary-700 bg-primary-900 px-3 py-2 text-primary-100 outline-none transition-colors focus:border-accent-500"
             />
           </label>
 
           <label className="block text-sm text-primary-200">
-            <span className="mb-1 block text-xs uppercase tracking-wide text-primary-500">
+            <span className="mb-1 block text-xs uppercase tracking-wide text-primary-400">
               Check-out
             </span>
             <input
@@ -112,13 +112,13 @@ export default function CabinReservation({ cabin }: { cabin: Cabin }) {
                   endDate: event.target.value,
                 }))
               }
-              className="w-full border border-primary-700 bg-primary-950 px-3 py-2 text-primary-100 outline-none transition-colors focus:border-accent-500"
+              className="w-full border border-primary-700 bg-primary-900 px-3 py-2 text-primary-100 outline-none transition-colors focus:border-accent-500"
             />
           </label>
         </div>
 
         <label className="block text-sm text-primary-200">
-          <span className="mb-1 block text-xs uppercase tracking-wide text-primary-500">
+          <span className="mb-1 block text-xs uppercase tracking-wide text-primary-400">
             Guests
           </span>
           <select
@@ -129,7 +129,7 @@ export default function CabinReservation({ cabin }: { cabin: Cabin }) {
                 guests: Number(event.target.value),
               }))
             }
-            className="w-full border border-primary-700 bg-primary-950 px-3 py-2 text-primary-100 outline-none transition-colors focus:border-accent-500"
+            className="w-full border border-primary-700 bg-primary-900 px-3 py-2 text-primary-100 outline-none transition-colors focus:border-accent-500"
           >
             {guestOptions.map((option) => (
               <option key={option} value={option}>
@@ -140,7 +140,7 @@ export default function CabinReservation({ cabin }: { cabin: Cabin }) {
         </label>
 
         <label className="block text-sm text-primary-200">
-          <span className="mb-1 block text-xs uppercase tracking-wide text-primary-500">
+          <span className="mb-1 block text-xs uppercase tracking-wide text-primary-400">
             Notes
           </span>
           <textarea
@@ -152,12 +152,12 @@ export default function CabinReservation({ cabin }: { cabin: Cabin }) {
               }))
             }
             rows={3}
-            className="w-full resize-none border border-primary-700 bg-primary-950 px-3 py-2 text-primary-100 outline-none transition-colors focus:border-accent-500"
+            className="w-full resize-none border border-primary-700 bg-primary-900 px-3 py-2 text-primary-100 outline-none transition-colors focus:border-accent-500"
             placeholder="Anything we should know?"
           />
         </label>
 
-        <div className="rounded border border-primary-700 bg-primary-950 p-3 text-sm text-primary-200">
+        <div className="border border-primary-700 bg-primary-950 p-3 text-sm text-primary-200">
           <div className="flex items-center justify-between gap-2">
             <span>{nights} nights</span>
             <span>${totalPrice}</span>
@@ -171,9 +171,13 @@ export default function CabinReservation({ cabin }: { cabin: Cabin }) {
           Reserve cabin
         </button>
 
-        {statusMessage ? (
-          <p className="text-sm text-accent-400">{statusMessage}</p>
-        ) : null}
+        <p
+          role="status"
+          aria-live="polite"
+          className={statusMessage ? "text-sm text-accent-400" : "sr-only"}
+        >
+          {statusMessage}
+        </p>
       </form>
     </aside>
   );

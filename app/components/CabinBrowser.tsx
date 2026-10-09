@@ -123,7 +123,11 @@ export default function CabinBrowser({
   return (
     <>
       <div className="mb-4 flex justify-end">
-        <div className="flex border border-primary-800">
+        <div
+          role="group"
+          aria-label="Filter cabins by capacity"
+          className="grid grid-cols-2 border border-primary-800 sm:flex"
+        >
           {filters.map((item) => {
             const isActive = filter === item.value;
 

@@ -9,9 +9,9 @@ export default function CabinDetail({ cabin }: { cabin: Cabin }) {
   const discountedPrice = Math.max(cabin.regularPrice - cabin.discount, 0);
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+    <div className="mx-auto w-full max-w-6xl">
       <div className="mb-6 flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold tracking-tight text-primary-100">
+        <h1 className="text-4xl font-medium text-accent-400">
           Cabin #{cabin.cabinNumber}
         </h1>
 
@@ -58,13 +58,13 @@ export default function CabinDetail({ cabin }: { cabin: Cabin }) {
               {cabin.name}
             </h2>
 
-            <p className="mt-4 max-w-3xl text-sm leading-6 text-primary-300">
+            <p className="mt-4 max-w-3xl text-lg leading-8 text-primary-200">
               {cabin.description}
             </p>
 
             <div className="mt-8 grid gap-4 border-t border-primary-800 pt-6 sm:grid-cols-3">
               <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-primary-500">
+                <p className="text-xs font-medium uppercase tracking-wide text-primary-400">
                   Capacity
                 </p>
                 <p className="mt-1 text-sm font-medium text-primary-100">
@@ -73,7 +73,7 @@ export default function CabinDetail({ cabin }: { cabin: Cabin }) {
               </div>
 
               <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-primary-500">
+                <p className="text-xs font-medium uppercase tracking-wide text-primary-400">
                   Regular price
                 </p>
                 <p className="mt-1 text-sm font-medium text-primary-100">
@@ -82,7 +82,7 @@ export default function CabinDetail({ cabin }: { cabin: Cabin }) {
               </div>
 
               <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-primary-500">
+                <p className="text-xs font-medium uppercase tracking-wide text-primary-400">
                   Final price
                 </p>
                 <p className="mt-1 text-sm font-semibold text-accent-400">

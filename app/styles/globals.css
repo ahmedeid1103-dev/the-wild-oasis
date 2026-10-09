@@ -27,24 +27,15 @@
 }
 
 html {
+  color-scheme: dark;
   scrollbar-gutter: stable;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent-400);
+  outline-offset: 2px;
 }
 
 body {
   min-height: 100vh;
-}
-
-@layer components {
-  @keyframes rotate {
-    to {
-      transform: rotate(1turn);
-    }
-  }
-}
-
-.rdp {
-  --rdp-cell-size: 32px !important;
-  --rdp-accent-color: var(--color-accent-500) !important;
-  --rdp-background-color: var(--color-accent-600) !important;
-  margin: 0 !important;
 }
