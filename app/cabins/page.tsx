@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 
-import CabinList from "../components/CabinList";
 import CabinBrowser from "../components/CabinBrowser";
 import { isCapacityFilter, type CabinFilter } from "../lib/data";
 import { getCabins } from "../lib/data-service";
@@ -11,8 +10,22 @@ export const metadata: Metadata = {
 
 export default async function Page({ searchParams }: PageProps<"/cabins">) {
   const { capacity } = await searchParams;
-  const filter: CabinFilter = isCapacityFilter(capacity) ? capacity : "all";
-  const cabins = await getCabins(filter);
+  const initialFilter: CabinFilter = isCapacityFilter(capacity)
+    ? capacity
+    : "all";
+  // eslint-disable-next-line react-hooks/purity -- request-scoped server timing
+  const cabinsStartedAt = performance.now();
+  const cabins = await getCabins();
+
+  console.info(
+    "[cabin-perf]",
+    JSON.stringify({
+      event: "getCabins-call-complete",
+      filter: "all",
+      // eslint-disable-next-line react-hooks/purity -- request-scoped server timing
+      durationMs: Number((performance.now() - cabinsStartedAt).toFixed(1)),
+    }),
+  );
 
   return (
     <div>
@@ -29,8 +42,7 @@ export default async function Page({ searchParams }: PageProps<"/cabins">) {
         Welcome to paradise.
       </p>
 
-      <CabinBrowser />
-      <CabinList cabins={cabins} />
+      <CabinBrowser cabins={cabins} initialFilter={initialFilter} />
     </div>
   );
 }
