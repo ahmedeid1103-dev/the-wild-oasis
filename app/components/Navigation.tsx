@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/solid";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -21,13 +22,54 @@ const navItems = [
 
 export default function Navigation() {
   const pathname = usePathname();
-  const mobileMenuRef = useRef<HTMLDetailsElement>(null);
+  const [menuState, setMenuState] = useState({ pathname, open: false });
+  const menuRef = useRef<HTMLDivElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const panelId = "mobile-navigation-panel";
+  if (menuState.pathname !== pathname) {
+    setMenuState({ pathname, open: false });
+  }
+  const isOpen = menuState.pathname === pathname && menuState.open;
 
   useEffect(() => {
-    if (mobileMenuRef.current) {
-      mobileMenuRef.current.open = false;
+    if (!isOpen) {
+      return;
     }
-  }, [pathname]);
+
+    function handlePointerDown(event: PointerEvent) {
+      if (
+        event.target instanceof Node &&
+        menuRef.current?.contains(event.target)
+      ) {
+        return;
+      }
+
+      setMenuState({ pathname, open: false });
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setMenuState({ pathname, open: false });
+        toggleRef.current?.focus();
+      }
+    }
+
+    function handleViewportResize() {
+      if (window.matchMedia("(min-width: 64rem)").matches) {
+        setMenuState({ pathname, open: false });
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("resize", handleViewportResize);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("resize", handleViewportResize);
+    };
+  }, [isOpen, pathname]);
 
   return (
     <nav>
@@ -56,12 +98,34 @@ export default function Navigation() {
       </ul>
 
       {/* Mobile navigation */}
-      <details ref={mobileMenuRef} className="relative lg:hidden">
-        <summary className="list-none cursor-pointer border border-primary-800 px-4 py-2 text-sm font-semibold transition-colors hover:bg-primary-900 [&::-webkit-details-marker]:hidden">
-          Menu
-        </summary>
+      <div ref={menuRef} className="relative z-50 lg:hidden">
+        <button
+          ref={toggleRef}
+          type="button"
+          aria-expanded={isOpen}
+          aria-controls={panelId}
+          aria-haspopup="true"
+          onClick={() => setMenuState({ pathname, open: !isOpen })}
+          className="inline-flex min-h-11 items-center gap-2 border border-primary-800 px-4 text-sm font-semibold transition-colors hover:bg-primary-900"
+        >
+          <span>Menu</span>
+          {isOpen ? (
+            <XMarkIcon aria-hidden="true" className="size-5" />
+          ) : (
+            <Bars3Icon aria-hidden="true" className="size-5" />
+          )}
+        </button>
 
-        <div className="absolute right-0 top-full mt-2 w-48 border border-primary-800 bg-primary-950 shadow-lg">
+        <div
+          id={panelId}
+          aria-hidden={!isOpen}
+          inert={!isOpen}
+          className={`absolute right-0 top-full z-50 mt-2 w-48 origin-top-right border border-primary-800 bg-primary-950 shadow-lg transition-all duration-150 motion-reduce:transition-none ${
+            isOpen
+              ? "visible translate-y-0 scale-100 opacity-100"
+              : "invisible -translate-y-1 scale-95 opacity-0"
+          }`}
+        >
           <ul className="flex flex-col py-2">
             {navItems.map((item) => {
               const isActive =
@@ -72,7 +136,8 @@ export default function Navigation() {
                   <Link
                     href={item.href}
                     aria-current={isActive ? "page" : undefined}
-                    className={`block px-4 py-3 text-sm transition-colors ${
+                    onClick={() => setMenuState({ pathname, open: false })}
+                    className={`block min-h-11 px-4 py-3 text-sm transition-colors ${
                       isActive
                         ? "bg-primary-900 text-accent-400"
                         : "hover:bg-primary-900 hover:text-accent-400"
@@ -85,7 +150,7 @@ export default function Navigation() {
             })}
           </ul>
         </div>
-      </details>
+      </div>
     </nav>
   );
 }
