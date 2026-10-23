@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
-import { CabinDetail } from "@/app/components";
-import { getCabin, getCabins } from "@/app/lib/data-service";
-import type { Cabin } from "@/app/types/cabin";
+import CabinDetail from "@/features/cabins/components/CabinDetail";
+import { getCabin, getCabins } from "@/features/cabins/queries";
+import type { Cabin } from "@/features/cabins/types";
 
 type PageProps = {
   params: Promise<{

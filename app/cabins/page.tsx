@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
-import CabinBrowser from "../components/CabinBrowser";
-import { getCabins } from "../lib/data-service";
+import CabinBrowser from "@/features/cabins/components/CabinBrowser";
+import { getCabins } from "@/features/cabins/queries";
 import Loading from "./loading";
 
 export const metadata: Metadata = {

@@ -1,46 +1,24 @@
-This file is a merged representation of the entire codebase, combined into a single document by Repomix.
-
-<file_summary>
-This section contains a summary of this file.
-
-<purpose>
-This file contains a packed representation of the entire repository's contents.
+<repomix><file_summary>This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+The content has been processed where content has been formatted for parsing in xml style.<purpose>This file contains a packed representation of the entire repository&apos;s contents.
 It is designed to be easily consumable by AI systems for analysis, code review,
-or other automated processes.
-</purpose>
-
-<file_format>
-The content is organized as follows:
+or other automated processes.</purpose><file_format>The content is organized as follows:
 1. This summary section
 2. Repository information
 3. Directory structure
 4. Repository files (if enabled)
-5. Multiple file entries, each consisting of:
+5. Repository files, each consisting of:
   - File path as an attribute
-  - Full contents of the file
-</file_format>
-
-<usage_guidelines>
-- This file should be treated as read-only. Any changes should be made to the
+  - Full contents of the file</file_format><usage_guidelines>- This file should be treated as read-only. Any changes should be made to the
   original repository files, not this packed version.
 - When processing this file, use the file path to distinguish
   between different files in the repository.
 - Be aware that this file may contain sensitive information. Handle it with
-  the same level of security as you would the original repository.
-</usage_guidelines>
-
-<notes>
-- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+  the same level of security as you would the original repository.</usage_guidelines><notes>- Some files may have been excluded based on .gitignore rules and Repomix&apos;s configuration
 - Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
 - Files matching patterns in .gitignore are excluded
 - Files matching default ignore patterns are excluded
-- Files are sorted by Git change count (files with more changes are at the bottom)
-</notes>
-
-</file_summary>
-
-<directory_structure>
-app/
+- Content has been formatted for parsing in xml style
+- Files are sorted by Git change count (files with more changes are at the bottom)</notes></file_summary><directory_structure>app/
   about/
     page.tsx
   account/
@@ -49,7 +27,13 @@ app/
     reservations/
       page.tsx
     layout.tsx
+    loading.tsx
     page.tsx
+  auth/
+    callback/
+      route.ts
+    error/
+      page.tsx
   cabins/
     [cabinId]/
       error.tsx
@@ -58,34 +42,61 @@ app/
     error.tsx
     loading.tsx
     page.tsx
-  components/
-    CabinBrowser.tsx
-    CabinCard.tsx
-    CabinDetail.tsx
-    CabinList.tsx
-    CabinReservation.tsx
-    Header.tsx
-    index.ts
-    Logo.tsx
-    Navigation.tsx
-    SideNavigation.tsx
-    SignOutButton.tsx
-    Spinner.tsx
-  lib/
-    queries/
-      cabin-queries.ts
-    supabase/
-      client.ts
-    data-service.ts
-    data.ts
+  login/
+    page.tsx
+  signup/
+    page.tsx
   styles/
     globals.css
-  types/
-    cabin.ts
   icon.png
   layout.tsx
   page.tsx
-  providers.tsx
+components/
+  Header.tsx
+  HeaderClient.tsx
+  Logo.tsx
+  Navigation.tsx
+  SideNavigation.tsx
+  Spinner.tsx
+features/
+  auth/
+    components/
+      AuthForm.tsx
+      AuthPageContent.tsx
+      SignOutButton.tsx
+    actions.ts
+    safe-local-redirect.ts
+    schemas.ts
+  cabins/
+    components/
+      CabinBrowser.tsx
+      CabinCard.tsx
+      CabinDetail.tsx
+      CabinList.tsx
+    filter.ts
+    queries.ts
+    types.ts
+  profile/
+    components/
+      ProfileForm.tsx
+    actions.ts
+    queries.ts
+    schemas.ts
+  reservations/
+    components/
+      CabinReservation.tsx
+    actions.ts
+    queries.ts
+    schemas.ts
+lib/
+  supabase/
+    client.ts
+    config.ts
+    data-client.ts
+    server.ts
+  action-state.ts
+  auth-errors.ts
+  site-origin.ts
 public/
   cabins/
     cabin-001.jpg
@@ -100,6 +111,11 @@ public/
   about-2.jpg
   bg.png
   logo.png
+supabase/
+  drafts/
+    20261023062200_guest_auth_ownership_draft.sql
+    20261023070000_guest_profile_writes_draft.sql
+    20261023080000_reservation_creation_draft.sql
 .gitignore
 AGENTS.md
 CLAUDE.md
@@ -107,553 +123,1020 @@ eslint.config.mjs
 next.config.ts
 package.json
 postcss.config.mjs
+proxy.ts
 README.md
-tsconfig.json
-</directory_structure>
+tsconfig.json</directory_structure><files>This section contains the contents of the repository&apos;s files.<file path="app/account/loading.tsx">export default function Loading() {
+  return (
+    &lt;p aria-busy=&quot;true&quot; className=&quot;text-primary-300&quot;&gt;
+      Loading your account...
+    &lt;/p&gt;
+  );
+}</file><file path="app/auth/callback/route.ts">import { NextResponse, type NextRequest } from &quot;next/server&quot;;
 
-<files>
-This section contains the contents of the repository's files.
+import { safeLocalRedirect } from &quot;@/features/auth/safe-local-redirect&quot;;
+import { getTrustedSiteOrigin } from &quot;@/lib/site-origin&quot;;
+import { createServerSupabaseClient } from &quot;@/lib/supabase/server&quot;;
 
-<file path="app/about/page.tsx">
-import type { Metadata } from "next";
-import Image from "next/image";
-import Link from "next/link";
+export async function GET(request: NextRequest) {
+  const { searchParams } = request.nextUrl;
+  const siteOrigin = getTrustedSiteOrigin(request.nextUrl.origin);
 
-import about1 from "@/public/about-1.jpg";
-import about2 from "@/public/about-2.jpg";
+  if (!siteOrigin) {
+    return NextResponse.json(
+      { error: &quot;Unable to determine a trusted redirect origin.&quot; },
+      { status: 400 },
+    );
+  }
+
+  if (searchParams.has(&quot;error&quot;) || searchParams.has(&quot;error_description&quot;)) {
+    return NextResponse.redirect(new URL(&quot;/auth/error&quot;, siteOrigin));
+  }
+
+  const code = searchParams.get(&quot;code&quot;);
+
+  if (!code) {
+    return NextResponse.redirect(new URL(&quot;/auth/error&quot;, siteOrigin));
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+  if (error) {
+    return NextResponse.redirect(new URL(&quot;/auth/error&quot;, siteOrigin));
+  }
+
+  const next = safeLocalRedirect(searchParams.get(&quot;next&quot;));
+  return NextResponse.redirect(new URL(next, siteOrigin));
+}</file><file path="app/auth/error/page.tsx">import type { Metadata } from &quot;next&quot;;
+import Link from &quot;next/link&quot;;
 
 export const metadata: Metadata = {
-  title: "About",
+  title: &quot;Email confirmation failed&quot;,
 };
 
-export default function Page() {
+export default function EmailConfirmationErrorPage() {
   return (
-    <div className="grid gap-24 md:gap-32">
-      <section className="grid items-center gap-8 md:grid-cols-2 md:gap-16">
-        <div>
-          <h1 className="mb-6 text-4xl font-medium text-accent-400">
-            Welcome to The Wild Oasis
-          </h1>
+    &lt;section className=&quot;mx-auto max-w-2xl&quot;&gt;
+      &lt;h1 className=&quot;mb-3 text-4xl font-medium text-accent-400&quot;&gt;
+        We couldn&amp;apos;t confirm your email
+      &lt;/h1&gt;
+      &lt;p className=&quot;mb-8 text-lg text-primary-200&quot;&gt;
+        The confirmation link may have expired or already been used. Open the
+        link in the same browser you used to sign up, then try again.
+      &lt;/p&gt;
+      &lt;div className=&quot;flex flex-wrap gap-5&quot;&gt;
+        &lt;Link
+          href=&quot;/login&quot;
+          className=&quot;inline-flex bg-accent-500 px-6 py-3 font-semibold text-primary-900 transition-colors hover:bg-accent-600&quot;
+        &gt;
+          Go to sign in
+        &lt;/Link&gt;
+        &lt;Link
+          href=&quot;/signup&quot;
+          className=&quot;inline-flex border border-primary-700 px-6 py-3 font-semibold text-primary-100 transition-colors hover:border-primary-500&quot;
+        &gt;
+          Create an account
+        &lt;/Link&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+  );
+}</file><file path="app/login/page.tsx">import type { Metadata } from &quot;next&quot;;
+import { Suspense } from &quot;react&quot;;
 
-          <div className="space-y-6 text-lg leading-8 text-primary-200">
-            <p>
-              Where nature&apos;s beauty and comfortable living blend
-              seamlessly. Hidden away in the heart of the Italian Dolomites,
-              this is your paradise away from home. But it&apos;s not just about
-              the luxury cabins. It&apos;s about the experience of reconnecting
-              with nature and enjoying simple pleasures with family.
-            </p>
+import AuthPageContent from &quot;@/features/auth/components/AuthPageContent&quot;;
 
-            <p>
-              Our 8 luxury cabins provide a cozy base, but the real freedom and
-              peace you&apos;ll find in the surrounding mountains. Wander
-              through lush forests, breathe in the fresh air, and watch the
-              stars twinkle above from the warmth of a campfire or your hot tub.
-            </p>
+export const metadata: Metadata = {
+  title: &quot;Sign in&quot;,
+};
 
-            <p>
-              This is where memorable moments are made, surrounded by
-              nature&apos;s splendor. It&apos;s a place to slow down, relax, and
-              feel the joy of being together in a beautiful setting.
-            </p>
-          </div>
-        </div>
+type LoginPageProps = {
+  searchParams: Promise&lt;{ next?: string | string[] | undefined }&gt;;
+};
 
-        <div className="relative h-112">
-          <Image
-            src={about1}
-            fill
-            priority
-            placeholder="blur"
-            sizes="(max-width: 768px) 100vw, 50vw"
-            alt="Family sitting around a fire pit in front of a cabin"
-            className="object-cover"
-          />
-        </div>
-      </section>
+export default function LoginPage({ searchParams }: LoginPageProps) {
+  return (
+    &lt;section className=&quot;mx-auto max-w-2xl&quot;&gt;
+      &lt;h1 className=&quot;mb-3 text-4xl font-medium text-accent-400&quot;&gt;Sign in&lt;/h1&gt;
+      &lt;p className=&quot;mb-8 text-lg text-primary-200&quot;&gt;
+        Sign in with your email address and password.
+      &lt;/p&gt;
+      &lt;Suspense
+        fallback={
+          &lt;p aria-busy=&quot;true&quot; className=&quot;text-primary-300&quot;&gt;
+            Loading sign-in form...
+          &lt;/p&gt;
+        }
+      &gt;
+        &lt;AuthPageContent mode=&quot;login&quot; searchParams={searchParams} /&gt;
+      &lt;/Suspense&gt;
+    &lt;/section&gt;
+  );
+}</file><file path="app/signup/page.tsx">import type { Metadata } from &quot;next&quot;;
+import { Suspense } from &quot;react&quot;;
 
-      <section className="grid items-center gap-8 md:grid-cols-2 md:gap-16">
-        <div className="relative order-2 h-112 md:order-1">
-          <Image
-            src={about2}
-            fill
-            placeholder="blur"
-            sizes="(max-width: 768px) 100vw, 50vw"
-            alt="Family that manages The Wild Oasis"
-            className="object-cover"
-          />
-        </div>
+import AuthPageContent from &quot;@/features/auth/components/AuthPageContent&quot;;
 
-        <div className="order-1 md:order-2">
-          <h2 className="mb-6 text-4xl font-medium text-accent-400">
-            Managed by our family since 1962
-          </h2>
+export const metadata: Metadata = {
+  title: &quot;Create an account&quot;,
+};
 
-          <div className="space-y-6 text-lg leading-8 text-primary-200">
-            <p>
-              Since 1962, The Wild Oasis has been a cherished family-run
-              retreat. Started by our grandparents, this haven has been nurtured
-              with love and care, passing down through our family as a testament
-              to our dedication to creating a warm, welcoming environment.
-            </p>
+type SignupPageProps = {
+  searchParams: Promise&lt;{ next?: string | string[] | undefined }&gt;;
+};
 
-            <p>
-              Over the years, we&apos;ve maintained the essence of The Wild
-              Oasis, blending the timeless beauty of the mountains with the
-              personal touch only a family business can offer. Here, you&apos;re
-              not just a guest; you&apos;re part of our extended family. So join
-              us at The Wild Oasis soon, where tradition meets tranquility, and
-              every visit is like coming home.
-            </p>
+export default function SignupPage({ searchParams }: SignupPageProps) {
+  return (
+    &lt;section className=&quot;mx-auto max-w-2xl&quot;&gt;
+      &lt;h1 className=&quot;mb-3 text-4xl font-medium text-accent-400&quot;&gt;
+        Create an account
+      &lt;/h1&gt;
+      &lt;p className=&quot;mb-8 text-lg text-primary-200&quot;&gt;
+        Create an account with your email address and a password.
+      &lt;/p&gt;
+      &lt;Suspense
+        fallback={
+          &lt;p aria-busy=&quot;true&quot; className=&quot;text-primary-300&quot;&gt;
+            Loading account form...
+          &lt;/p&gt;
+        }
+      &gt;
+        &lt;AuthPageContent mode=&quot;signup&quot; searchParams={searchParams} /&gt;
+      &lt;/Suspense&gt;
+    &lt;/section&gt;
+  );
+}</file><file path="components/Header.tsx">import { Suspense } from &quot;react&quot;;
+import { unstable_noStore } from &quot;next/cache&quot;;
 
-            <Link
-              href="/cabins"
-              className="inline-block bg-accent-500 px-8 py-5 text-lg font-semibold text-primary-800 transition-all hover:bg-accent-600"
-            >
-              Explore our luxury cabins
-            </Link>
-          </div>
-        </div>
-      </section>
-    </div>
+import HeaderClient from &quot;./HeaderClient&quot;;
+import { isUnauthenticatedAuthError } from &quot;@/lib/auth-errors&quot;;
+import { createServerSupabaseClient } from &quot;@/lib/supabase/server&quot;;
+
+export default function Header() {
+  return (
+    &lt;Suspense fallback={&lt;HeaderClient isSignedIn={false} /&gt;}&gt;
+      &lt;AuthenticatedHeader /&gt;
+    &lt;/Suspense&gt;
   );
 }
-</file>
 
-<file path="app/account/profile/page.tsx">
-import type { Metadata } from "next";
+async function AuthenticatedHeader() {
+  const isSignedIn = await getSignedInState();
+  return &lt;HeaderClient isSignedIn={isSignedIn} /&gt;;
+}
 
-export const metadata: Metadata = {
-  title: "Profile",
+async function getSignedInState() {
+  unstable_noStore();
+
+  const supabase = await createServerSupabaseClient();
+
+  try {
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+
+    if (error &amp;&amp; isUnauthenticatedAuthError(error)) {
+      return false;
+    }
+
+    return !error &amp;&amp; Boolean(user);
+  } catch {
+    return false;
+  }
+}</file><file path="components/HeaderClient.tsx">&quot;use client&quot;;
+
+import { Suspense } from &quot;react&quot;;
+import { usePathname } from &quot;next/navigation&quot;;
+
+import Logo from &quot;./Logo&quot;;
+import Navigation from &quot;./Navigation&quot;;
+
+type HeaderClientProps = {
+  isSignedIn: boolean;
 };
 
-export default function Page() {
+export default function HeaderClient({ isSignedIn }: HeaderClientProps) {
   return (
-    <div>
-      <h1 className="mb-3 text-4xl font-medium text-accent-400">
-        Update your guest profile
-      </h1>
-
-      <p className="mb-10 max-w-2xl text-lg leading-8 text-primary-200">
-        Providing the following information will make your check-in process
-        faster and smoother. See you soon!
-      </p>
-
-      <form className="max-w-2xl space-y-6">
-        <div>
-          <label
-            htmlFor="fullName"
-            className="mb-2 block text-sm font-medium text-primary-300"
-          >
-            Full name
-          </label>
-
-          <input
-            id="fullName"
-            name="fullName"
-            type="text"
-            defaultValue="Jonas Schmedtmann"
-            className="w-full border border-primary-700 bg-primary-900 px-5 py-3 text-primary-100 outline-none transition-colors focus:border-accent-500"
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="email"
-            className="mb-2 block text-sm font-medium text-primary-300"
-          >
-            Email address
-          </label>
-
-          <input
-            id="email"
-            name="email"
-            type="email"
-            defaultValue="jonas@example.com"
-            disabled
-            className="w-full border border-primary-800 bg-primary-900 px-5 py-3 text-primary-500"
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="nationality"
-            className="mb-2 block text-sm font-medium text-primary-300"
-          >
-            Nationality
-          </label>
-
-          <select
-            id="nationality"
-            name="nationality"
-            defaultValue="Germany"
-            className="w-full border border-primary-700 bg-primary-900 px-5 py-3 text-primary-100 outline-none transition-colors focus:border-accent-500"
-          >
-            <option value="Germany">Germany</option>
-            <option value="Italy">Italy</option>
-            <option value="France">France</option>
-            <option value="Spain">Spain</option>
-            <option value="United Kingdom">United Kingdom</option>
-            <option value="United States">United States</option>
-            <option value="Egypt">Egypt</option>
-          </select>
-        </div>
-
-        <div>
-          <label
-            htmlFor="nationalId"
-            className="mb-2 block text-sm font-medium text-primary-300"
-          >
-            National ID
-          </label>
-
-          <input
-            id="nationalId"
-            name="nationalId"
-            type="text"
-            defaultValue="DE123456789"
-            className="w-full border border-primary-700 bg-primary-900 px-5 py-3 text-primary-100 outline-none transition-colors focus:border-accent-500"
-          />
-        </div>
-
-        <button
-          type="submit"
-          className="bg-accent-500 px-6 py-3 font-semibold text-primary-900 transition-colors hover:bg-accent-600"
-        >
-          Update profile
-        </button>
-      </form>
-    </div>
+    &lt;Suspense
+      fallback={
+        &lt;HeaderContents
+          isSignedIn={isSignedIn}
+          isHomePage={false}
+          pathname=&quot;&quot;
+        /&gt;
+      }
+    &gt;
+      &lt;PathAwareHeader isSignedIn={isSignedIn} /&gt;
+    &lt;/Suspense&gt;
   );
 }
-</file>
 
-<file path="app/account/reservations/page.tsx">
-import type { Metadata } from "next";
-import Link from "next/link";
+function PathAwareHeader({ isSignedIn }: HeaderClientProps) {
+  const pathname = usePathname();
+  return (
+    &lt;HeaderContents
+      isSignedIn={isSignedIn}
+      isHomePage={pathname === &quot;/&quot;}
+      pathname={pathname}
+    /&gt;
+  );
+}
 
-export const metadata: Metadata = {
-  title: "Reservations",
-};
+function HeaderContents({
+  isSignedIn,
+  isHomePage,
+  pathname,
+}: HeaderClientProps &amp; { isHomePage: boolean; pathname: string }) {
+  return (
+    &lt;header
+      className={
+        isHomePage
+          ? &quot;absolute inset-x-0 top-0 z-50 px-3 py-3 sm:px-6 sm:py-4 lg:px-8 lg:py-5&quot;
+          : &quot;relative z-20 px-3 py-3 sm:px-6 sm:py-4 lg:px-8 lg:py-5&quot;
+      }
+    &gt;
+      &lt;div className=&quot;mx-auto flex w-full max-w-7xl items-center justify-between gap-3 sm:gap-6&quot;&gt;
+        &lt;Logo /&gt;
+        &lt;Navigation isSignedIn={isSignedIn} pathname={pathname} /&gt;
+      &lt;/div&gt;
+    &lt;/header&gt;
+  );
+}</file><file path="components/Logo.tsx">import Image from &quot;next/image&quot;;
+import Link from &quot;next/link&quot;;
 
-const reservations = [
+export default function Logo() {
+  return (
+    &lt;Link href=&quot;/&quot; className=&quot;flex shrink-0 items-center gap-2 sm:gap-3 lg:gap-4&quot;&gt;
+      &lt;Image
+        src=&quot;/logo.png&quot;
+        width={60}
+        height={60}
+        alt=&quot;The Wild Oasis logo&quot;
+        loading=&quot;eager&quot;
+        className=&quot;h-9 w-9 sm:h-12 sm:w-12 lg:h-15 lg:w-15&quot;
+      /&gt;
+
+      &lt;span className=&quot;text-sm font-semibold text-primary-100 sm:text-base lg:text-xl&quot;&gt;
+        The Wild Oasis
+      &lt;/span&gt;
+    &lt;/Link&gt;
+  );
+}</file><file path="components/Navigation.tsx">&quot;use client&quot;;
+
+import { Bars3Icon, XMarkIcon } from &quot;@heroicons/react/24/solid&quot;;
+import { useEffect, useRef, useState } from &quot;react&quot;;
+import Link from &quot;next/link&quot;;
+
+const baseNavItems = [
   {
-    id: 1,
-    cabin: "001",
-    startDate: "September 10, 2026",
-    endDate: "September 14, 2026",
-    guests: 2,
-    nights: 4,
-    totalPrice: 1000,
-    status: "Confirmed",
+    href: &quot;/cabins&quot;,
+    label: &quot;Cabins&quot;,
   },
   {
-    id: 2,
-    cabin: "004",
-    startDate: "October 5, 2026",
-    endDate: "October 10, 2026",
-    guests: 4,
-    nights: 5,
-    totalPrice: 2250,
-    status: "Confirmed",
+    href: &quot;/about&quot;,
+    label: &quot;About&quot;,
   },
 ];
 
-export default function Page() {
+type NavigationProps = {
+  isSignedIn: boolean;
+  pathname: string;
+};
+
+export default function Navigation({ isSignedIn, pathname }: NavigationProps) {
+  const navItems = [
+    ...baseNavItems,
+    {
+      href: isSignedIn ? &quot;/account&quot; : &quot;/login&quot;,
+      label: isSignedIn ? &quot;Guest area&quot; : &quot;Sign in&quot;,
+    },
+  ];
+  const [menuState, setMenuState] = useState({ pathname, open: false });
+  const menuRef = useRef&lt;HTMLDivElement&gt;(null);
+  const toggleRef = useRef&lt;HTMLButtonElement&gt;(null);
+  const panelId = &quot;mobile-navigation-panel&quot;;
+  if (menuState.pathname !== pathname) {
+    setMenuState({ pathname, open: false });
+  }
+  const isOpen = menuState.pathname === pathname &amp;&amp; menuState.open;
+
+  useEffect(() =&gt; {
+    if (!isOpen) {
+      return;
+    }
+
+    function handlePointerDown(event: PointerEvent) {
+      if (
+        event.target instanceof Node &amp;&amp;
+        menuRef.current?.contains(event.target)
+      ) {
+        return;
+      }
+
+      setMenuState({ pathname, open: false });
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === &quot;Escape&quot;) {
+        setMenuState({ pathname, open: false });
+        toggleRef.current?.focus();
+      }
+    }
+
+    function handleViewportResize() {
+      if (window.matchMedia(&quot;(min-width: 64rem)&quot;).matches) {
+        setMenuState({ pathname, open: false });
+      }
+    }
+
+    document.addEventListener(&quot;pointerdown&quot;, handlePointerDown);
+    document.addEventListener(&quot;keydown&quot;, handleKeyDown);
+    window.addEventListener(&quot;resize&quot;, handleViewportResize);
+
+    return () =&gt; {
+      document.removeEventListener(&quot;pointerdown&quot;, handlePointerDown);
+      document.removeEventListener(&quot;keydown&quot;, handleKeyDown);
+      window.removeEventListener(&quot;resize&quot;, handleViewportResize);
+    };
+  }, [isOpen, pathname]);
+
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="mb-3 text-4xl font-medium text-accent-400">
-          Your reservations
-        </h1>
+    &lt;nav&gt;
+      {/* Desktop navigation */}
+      &lt;ul className=&quot;hidden items-center gap-6 text-base lg:flex lg:gap-8 lg:text-lg&quot;&gt;
+        {navItems.map((item) =&gt; {
+          const isActive =
+            pathname === item.href || pathname.startsWith(`${item.href}/`);
 
-        <p className="text-lg text-primary-200">
-          Here you can see all your reservations and manage your upcoming stays.
-        </p>
-      </div>
+          return (
+            &lt;li key={item.href}&gt;
+              &lt;Link
+                href={item.href}
+                aria-current={isActive ? &quot;page&quot; : undefined}
+                className={`transition-colors ${
+                  isActive
+                    ? &quot;text-accent-400&quot;
+                    : &quot;text-primary-100 hover:text-accent-400&quot;
+                }`}
+              &gt;
+                {item.label}
+              &lt;/Link&gt;
+            &lt;/li&gt;
+          );
+        })}
+      &lt;/ul&gt;
 
-      {reservations.length === 0 ? (
-        <div className="border border-primary-800 bg-primary-950 px-8 py-10">
-          <p className="text-lg text-primary-200">
-            You have no reservations yet. Check out our{" "}
-            <Link
-              href="/cabins"
-              className="text-accent-500 underline underline-offset-4 transition-colors hover:text-accent-400"
-            >
-              luxury cabins &rarr;
-            </Link>
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {reservations.map((reservation) => (
-            <article
-              key={reservation.id}
-              className="border border-primary-800 bg-primary-950"
-            >
-              <div className="flex items-center justify-between border-b border-primary-800 px-6 py-5">
-                <div>
-                  <p className="mb-1 text-sm text-primary-500">
-                    Reservation #{reservation.id}
-                  </p>
+      {/* Mobile navigation */}
+      &lt;div ref={menuRef} className=&quot;relative z-50 lg:hidden&quot;&gt;
+        &lt;button
+          ref={toggleRef}
+          type=&quot;button&quot;
+          aria-expanded={isOpen}
+          aria-controls={panelId}
+          aria-haspopup=&quot;true&quot;
+          onClick={() =&gt; setMenuState({ pathname, open: !isOpen })}
+          className=&quot;inline-flex min-h-11 items-center gap-2 border border-primary-800 px-4 text-sm font-semibold transition-colors hover:bg-primary-900&quot;
+        &gt;
+          &lt;span&gt;Menu&lt;/span&gt;
+          {isOpen ? (
+            &lt;XMarkIcon aria-hidden=&quot;true&quot; className=&quot;size-5&quot; /&gt;
+          ) : (
+            &lt;Bars3Icon aria-hidden=&quot;true&quot; className=&quot;size-5&quot; /&gt;
+          )}
+        &lt;/button&gt;
 
-                  <h2 className="text-2xl font-medium text-primary-100">
-                    Cabin {reservation.cabin}
-                  </h2>
-                </div>
+        &lt;div
+          id={panelId}
+          aria-hidden={!isOpen}
+          inert={!isOpen}
+          className={`absolute right-0 top-full z-50 mt-2 w-48 origin-top-right border border-primary-800 bg-primary-950 shadow-lg transition-all duration-150 motion-reduce:transition-none ${
+            isOpen
+              ? &quot;visible translate-y-0 scale-100 opacity-100&quot;
+              : &quot;invisible -translate-y-1 scale-95 opacity-0&quot;
+          }`}
+        &gt;
+          &lt;ul className=&quot;flex flex-col py-2&quot;&gt;
+            {navItems.map((item) =&gt; {
+              const isActive =
+                pathname === item.href || pathname.startsWith(`${item.href}/`);
 
-                <span className="border border-accent-700 px-3 py-1 text-sm text-accent-400">
-                  {reservation.status}
-                </span>
-              </div>
+              return (
+                &lt;li key={item.href}&gt;
+                  &lt;Link
+                    href={item.href}
+                    aria-current={isActive ? &quot;page&quot; : undefined}
+                    onClick={() =&gt; setMenuState({ pathname, open: false })}
+                    className={`block min-h-11 px-4 py-3 text-sm transition-colors ${
+                      isActive
+                        ? &quot;bg-primary-900 text-accent-400&quot;
+                        : &quot;hover:bg-primary-900 hover:text-accent-400&quot;
+                    }`}
+                  &gt;
+                    {item.label}
+                  &lt;/Link&gt;
+                &lt;/li&gt;
+              );
+            })}
+          &lt;/ul&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/nav&gt;
+  );
+}</file><file path="components/SideNavigation.tsx">&quot;use client&quot;;
 
-              <div className="grid gap-6 px-6 py-6 sm:grid-cols-2 lg:grid-cols-4">
-                <div>
-                  <p className="mb-1 text-sm text-primary-500">Check-in</p>
-                  <p className="text-primary-200">{reservation.startDate}</p>
-                </div>
+import Link from &quot;next/link&quot;;
+import {
+  CalendarDaysIcon,
+  HomeIcon,
+  UserIcon,
+} from &quot;@heroicons/react/24/solid&quot;;
+import { usePathname } from &quot;next/navigation&quot;;
 
-                <div>
-                  <p className="mb-1 text-sm text-primary-500">Check-out</p>
-                  <p className="text-primary-200">{reservation.endDate}</p>
-                </div>
+import SignOutButton from &quot;@/features/auth/components/SignOutButton&quot;;
 
-                <div>
-                  <p className="mb-1 text-sm text-primary-500">Guests</p>
-                  <p className="text-primary-200">
-                    {reservation.guests}{" "}
-                    {reservation.guests === 1 ? "guest" : "guests"}
-                  </p>
-                </div>
+const navLinks = [
+  {
+    name: &quot;Home&quot;,
+    href: &quot;/account&quot;,
+    icon: HomeIcon,
+  },
+  {
+    name: &quot;Reservations&quot;,
+    href: &quot;/account/reservations&quot;,
+    icon: CalendarDaysIcon,
+  },
+  {
+    name: &quot;Guest profile&quot;,
+    href: &quot;/account/profile&quot;,
+    icon: UserIcon,
+  },
+];
 
-                <div>
-                  <p className="mb-1 text-sm text-primary-500">Total</p>
-                  <p className="text-primary-200">${reservation.totalPrice}</p>
-                </div>
-              </div>
+export default function SideNavigation() {
+  const pathname = usePathname();
 
-              <div className="flex items-center justify-between border-t border-primary-800 px-6 py-4">
-                <p className="text-sm text-primary-500">
-                  {reservation.nights}{" "}
-                  {reservation.nights === 1 ? "night" : "nights"}
-                </p>
+  return (
+    &lt;nav className=&quot;flex flex-col&quot;&gt;
+      &lt;ul className=&quot;flex flex-col gap-2 text-lg&quot;&gt;
+        {navLinks.map((link) =&gt; {
+          const Icon = link.icon;
+          const isActive =
+            pathname === link.href || pathname.startsWith(`${link.href}/`);
 
-                <Link
-                  href={`/account/reservations/edit/${reservation.id}`}
-                  className="text-accent-500 transition-colors hover:text-accent-400"
-                >
-                  Edit reservation &rarr;
-                </Link>
-              </div>
-            </article>
-          ))}
-        </div>
+          return (
+            &lt;li key={link.href}&gt;
+              &lt;Link
+                href={link.href}
+                aria-current={isActive ? &quot;page&quot; : undefined}
+                className={`flex items-center gap-4 px-5 py-3 font-semibold transition-colors ${
+                  isActive
+                    ? &quot;bg-primary-900 text-primary-100&quot;
+                    : &quot;text-primary-200 hover:bg-primary-900 hover:text-primary-100&quot;
+                }`}
+              &gt;
+                &lt;Icon className=&quot;h-5 w-5 text-primary-600&quot; /&gt;
+                &lt;span&gt;{link.name}&lt;/span&gt;
+              &lt;/Link&gt;
+            &lt;/li&gt;
+          );
+        })}
+      &lt;/ul&gt;
+
+      &lt;div className=&quot;mt-6 border-t border-primary-900 pt-2&quot;&gt;
+        &lt;SignOutButton /&gt;
+      &lt;/div&gt;
+    &lt;/nav&gt;
+  );
+}</file><file path="components/Spinner.tsx">type SpinnerProps = {
+  size?: &quot;sm&quot; | &quot;md&quot; | &quot;lg&quot;;
+  className?: string;
+  decorative?: boolean;
+};
+
+export default function Spinner({
+  size = &quot;md&quot;,
+  className = &quot;&quot;,
+  decorative = false,
+}: SpinnerProps) {
+  const sizeClass = {
+    sm: &quot;size-4&quot;,
+    md: &quot;size-5&quot;,
+    lg: &quot;size-7&quot;,
+  }[size];
+
+  return (
+    &lt;span
+      {...(decorative
+        ? { &quot;aria-hidden&quot;: true }
+        : { role: &quot;status&quot;, &quot;aria-label&quot;: &quot;Loading&quot; })}
+      className={`inline-block animate-spin rounded-full border-2 border-current border-r-transparent ${sizeClass} ${className}`}
+    /&gt;
+  );
+}</file><file path="features/auth/components/AuthForm.tsx">&quot;use client&quot;;
+
+import Link from &quot;next/link&quot;;
+import { useActionState } from &quot;react&quot;;
+
+import { signInAction, signUpAction } from &quot;@/features/auth/actions&quot;;
+import type { ActionState } from &quot;@/lib/action-state&quot;;
+
+type AuthFormProps = {
+  mode: &quot;login&quot; | &quot;signup&quot;;
+  next: string;
+};
+
+const initialState: ActionState = {};
+
+export default function AuthForm({ mode, next }: AuthFormProps) {
+  const action = mode === &quot;login&quot; ? signInAction : signUpAction;
+  const [state, formAction, pending] = useActionState(action, initialState);
+  const isSignup = mode === &quot;signup&quot;;
+
+  return (
+    &lt;div className=&quot;w-full max-w-md border border-primary-800 bg-primary-950 p-6 sm:p-8&quot;&gt;
+      &lt;form action={formAction} className=&quot;space-y-5&quot;&gt;
+        &lt;input type=&quot;hidden&quot; name=&quot;next&quot; value={next} /&gt;
+
+        &lt;label className=&quot;block text-sm font-medium text-primary-300&quot;&gt;
+          &lt;span className=&quot;mb-2 block&quot;&gt;Email address&lt;/span&gt;
+          &lt;input
+            name=&quot;email&quot;
+            type=&quot;email&quot;
+            autoComplete=&quot;email&quot;
+            maxLength={254}
+            required
+            className=&quot;w-full border border-primary-700 bg-primary-900 px-4 py-3 text-primary-100 outline-none transition-colors focus:border-accent-500&quot;
+          /&gt;
+        &lt;/label&gt;
+
+        &lt;label className=&quot;block text-sm font-medium text-primary-300&quot;&gt;
+          &lt;span className=&quot;mb-2 block&quot;&gt;Password&lt;/span&gt;
+          &lt;input
+            name=&quot;password&quot;
+            type=&quot;password&quot;
+            autoComplete={isSignup ? &quot;new-password&quot; : &quot;current-password&quot;}
+            minLength={isSignup ? 8 : undefined}
+            maxLength={128}
+            required
+            className=&quot;w-full border border-primary-700 bg-primary-900 px-4 py-3 text-primary-100 outline-none transition-colors focus:border-accent-500&quot;
+          /&gt;
+        &lt;/label&gt;
+
+        {state.error &amp;&amp; (
+          &lt;p role=&quot;alert&quot; className=&quot;text-sm text-red-300&quot;&gt;
+            {state.error}
+          &lt;/p&gt;
+        )}
+        {state.message &amp;&amp; (
+          &lt;p role=&quot;status&quot; className=&quot;text-sm text-accent-300&quot;&gt;
+            {state.message}
+          &lt;/p&gt;
+        )}
+
+        &lt;button
+          type=&quot;submit&quot;
+          disabled={pending}
+          className=&quot;w-full bg-accent-500 px-5 py-3 font-semibold text-primary-900 transition-colors hover:bg-accent-600 disabled:cursor-wait disabled:opacity-60&quot;
+        &gt;
+          {pending
+            ? &quot;Please wait...&quot;
+            : isSignup
+              ? &quot;Create account&quot;
+              : &quot;Sign in&quot;}
+        &lt;/button&gt;
+      &lt;/form&gt;
+
+      &lt;p className=&quot;mt-6 text-sm text-primary-300&quot;&gt;
+        {isSignup ? &quot;Already have an account?&quot; : &quot;New to The Wild Oasis?&quot;}{&quot; &quot;}
+        &lt;Link
+          href={`${isSignup ? &quot;/login&quot; : &quot;/signup&quot;}?next=${encodeURIComponent(next)}`}
+          className=&quot;text-accent-400 underline underline-offset-4 hover:text-accent-300&quot;
+        &gt;
+          {isSignup ? &quot;Sign in&quot; : &quot;Create an account&quot;}
+        &lt;/Link&gt;
+      &lt;/p&gt;
+      {isSignup &amp;&amp; (
+        &lt;p className=&quot;mt-3 text-xs leading-5 text-primary-400&quot;&gt;
+          You may need to confirm your email address before you can sign in.
+        &lt;/p&gt;
       )}
-    </div>
+    &lt;/div&gt;
   );
-}
-</file>
+}</file><file path="features/auth/components/AuthPageContent.tsx">import { unstable_noStore } from &quot;next/cache&quot;;
+import { redirect } from &quot;next/navigation&quot;;
 
-<file path="app/account/layout.tsx">
-import type { ReactNode } from "react";
+import AuthForm from &quot;./AuthForm&quot;;
+import { isUnauthenticatedAuthError } from &quot;@/lib/auth-errors&quot;;
+import { createServerSupabaseClient } from &quot;@/lib/supabase/server&quot;;
+import { safeLocalRedirect } from &quot;../safe-local-redirect&quot;;
 
-import { SideNavigation } from "../components";
-
-type AccountLayoutProps = {
-  children: ReactNode;
+type AuthPageContentProps = {
+  mode: &quot;login&quot; | &quot;signup&quot;;
+  searchParams: Promise&lt;{ next?: string | string[] | undefined }&gt;;
 };
 
-export default function AccountLayout({ children }: AccountLayoutProps) {
+export default async function AuthPageContent({
+  mode,
+  searchParams,
+}: AuthPageContentProps) {
+  unstable_noStore();
+
+  const { next } = await searchParams;
+  const destination = safeLocalRedirect(next);
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error &amp;&amp; isUnauthenticatedAuthError(error)) {
+    return &lt;AuthForm mode={mode} next={destination} /&gt;;
+  }
+
+  if (error) {
+    throw error;
+  }
+
+  if (user) {
+    redirect(destination);
+  }
+
+  return &lt;AuthForm mode={mode} next={destination} /&gt;;
+}</file><file path="features/auth/components/SignOutButton.tsx">&quot;use client&quot;;
+
+import { ArrowRightOnRectangleIcon } from &quot;@heroicons/react/24/solid&quot;;
+import { useActionState } from &quot;react&quot;;
+
+import { signOutAction } from &quot;@/features/auth/actions&quot;;
+import type { ActionState } from &quot;@/lib/action-state&quot;;
+
+const initialState: ActionState = {};
+
+export default function SignOutButton() {
+  const [state, formAction, pending] = useActionState(signOutAction, initialState);
+
   return (
-    <div className="grid grid-cols-1 gap-8 md:grid-cols-[16rem_1fr] md:gap-12">
-      <SideNavigation />
+    &lt;form action={formAction}&gt;
+      &lt;button
+        type=&quot;submit&quot;
+        disabled={pending}
+        className=&quot;flex w-full items-center gap-4 px-5 py-3 font-semibold text-primary-200 transition-colors hover:bg-primary-900 hover:text-primary-100 disabled:cursor-wait disabled:opacity-60&quot;
+      &gt;
+        &lt;ArrowRightOnRectangleIcon className=&quot;h-5 w-5 text-primary-600&quot; /&gt;
 
-      <div className="py-1">{children}</div>
-    </div>
+        &lt;span&gt;{pending ? &quot;Signing out...&quot; : &quot;Sign out&quot;}&lt;/span&gt;
+      &lt;/button&gt;
+      {state.error &amp;&amp; (
+        &lt;p role=&quot;alert&quot; className=&quot;px-5 py-2 text-sm text-red-300&quot;&gt;
+          {state.error}
+        &lt;/p&gt;
+      )}
+    &lt;/form&gt;
   );
-}
-</file>
+}</file><file path="features/auth/actions.ts">&quot;use server&quot;;
 
-<file path="app/account/page.tsx">
-import type { Metadata } from "next";
+import { headers } from &quot;next/headers&quot;;
+import { redirect } from &quot;next/navigation&quot;;
 
-export const metadata: Metadata = {
-  title: "Guest area",
-};
+import { safeLocalRedirect } from &quot;./safe-local-redirect&quot;;
+import type { ActionState } from &quot;@/lib/action-state&quot;;
+import { getTrustedSiteOrigin } from &quot;@/lib/site-origin&quot;;
+import { createServerSupabaseClient } from &quot;@/lib/supabase/server&quot;;
+import { signInSchema, signUpSchema } from &quot;./schemas&quot;;
 
-export default function Page() {
-  return (
-    <div>
-      <h1 className="mb-5 text-4xl font-medium text-accent-400">Guest area</h1>
-
-      <p className="text-primary-200 text-lg">
-        This is your guest area. Sign in to view your reservations and manage
-        your account.
-      </p>
-    </div>
+function parseCredentials(formData: FormData, mode: &quot;login&quot; | &quot;signup&quot;) {
+  const credentials = {
+    email: formData.get(&quot;email&quot;),
+    password: formData.get(&quot;password&quot;),
+  };
+  const result = (mode === &quot;login&quot; ? signInSchema : signUpSchema).safeParse(
+    credentials,
   );
-}
-</file>
 
-<file path="app/cabins/[cabinId]/error.tsx">
-"use client";
+  if (!result.success) {
+    const hasEmailError = result.error.issues.some(
+      (issue) =&gt; issue.path[0] === &quot;email&quot;,
+    );
+    const hasPasswordMinimumError = result.error.issues.some(
+      (issue) =&gt; issue.path[0] === &quot;password&quot; &amp;&amp; issue.code === &quot;too_small&quot;,
+    );
 
-export default function Error({ reset }: { reset: () => void }) {
-  return (
-    <div className="flex min-h-[60vh] items-center justify-center">
-      <div className="max-w-lg text-center">
-        <h2 className="mb-4 text-3xl font-medium text-accent-400">
-          Couldn&apos;t load this cabin
-        </h2>
-
-        <p className="mb-8 text-lg leading-8 text-primary-200">
-          Something went wrong while loading this cabin. Please try again.
-        </p>
-
-        <button
-          type="button"
-          onClick={reset}
-          className="bg-accent-500 px-6 py-3 font-semibold text-primary-900 transition-colors hover:bg-accent-600"
-        >
-          Try again
-        </button>
-      </div>
-    </div>
-  );
-}
-</file>
-
-<file path="app/cabins/[cabinId]/not-found.tsx">
-import Link from "next/link";
-
-export default function NotFound() {
-  return (
-    <div className="flex min-h-[60vh] items-center justify-center">
-      <div className="max-w-lg text-center">
-        <h1 className="mb-4 text-3xl font-medium text-accent-400">
-          Cabin not found
-        </h1>
-
-        <p className="mb-8 text-lg leading-8 text-primary-200">
-          We couldn&apos;t find the cabin you&apos;re looking for. It may have
-          been removed or is no longer available.
-        </p>
-
-        <Link
-          href="/cabins"
-          className="inline-flex items-center gap-2 bg-accent-500 px-6 py-3 font-semibold text-primary-900 transition-colors hover:bg-accent-600"
-        >
-          <span aria-hidden="true">←</span>
-          Back to cabins
-        </Link>
-      </div>
-    </div>
-  );
-}
-</file>
-
-<file path="app/cabins/[cabinId]/page.tsx">
-import { notFound } from "next/navigation";
-import type { Metadata } from "next";
-
-import { CabinDetail } from "@/app/components";
-import { getCabin, getCabins } from "@/app/lib/data-service";
-import type { Cabin } from "@/app/types/cabin";
-
-type PageProps = {
-  params: Promise<{
-    cabinId: string;
-  }>;
-};
-
-export async function generateMetadata({
-  params,
-}: PageProps): Promise<Metadata> {
-  const { cabinId } = await params;
-  const cabin = await getCabin(cabinId);
-
-  if (!cabin) {
     return {
-      title: "Cabin Not Found",
-      description: "The cabin you are looking for does not exist.",
+      success: false as const,
+      state: {
+        error:
+          mode === &quot;signup&quot; &amp;&amp;
+          !hasEmailError &amp;&amp;
+          hasPasswordMinimumError &amp;&amp;
+          typeof credentials.password === &quot;string&quot; &amp;&amp;
+          credentials.password.length &gt; 0
+            ? &quot;Choose a password with at least 8 characters.&quot;
+            : &quot;Enter a valid email address and password.&quot;,
+      },
     };
   }
 
-  return {
-    title: `Cabin ${cabin.name}`,
-    description: cabin.description,
-  };
+  return { success: true as const, data: result.data };
 }
 
-export async function generateStaticParams() {
-  const cabins = await getCabins();
+async function getCallbackUrl(next: string) {
+  const origin = (await headers()).get(&quot;origin&quot;);
+  const siteOrigin = getTrustedSiteOrigin(origin);
 
-  return cabins.map((cabin: Cabin) => ({
-    cabinId: String(cabin.id),
-  }));
-}
-
-export default async function Page({ params }: PageProps) {
-  const { cabinId } = await params;
-  const cabin = await getCabin(cabinId);
-
-  if (!cabin) {
-    notFound();
+  if (!siteOrigin) {
+    return null;
   }
 
-  return <CabinDetail cabin={cabin} />;
+  return new URL(
+    `/auth/callback?next=${encodeURIComponent(next)}`,
+    siteOrigin,
+  ).toString();
 }
-</file>
 
-<file path="app/cabins/error.tsx">
-"use client";
+export async function signInAction(
+  _previousState: ActionState,
+  formData: FormData,
+): Promise&lt;ActionState&gt; {
+  const parsedCredentials = parseCredentials(formData, &quot;login&quot;);
 
-export default function Error({ reset }: { reset: () => void }) {
-  return (
-    <div className="flex min-h-[50vh] items-center justify-center">
-      <div className="max-w-lg text-center">
-        <h2 className="mb-4 text-3xl font-medium text-accent-400">
-          Something went wrong
-        </h2>
+  if (!parsedCredentials.success) {
+    return parsedCredentials.state;
+  }
 
-        <p className="mb-8 text-lg leading-8 text-primary-200">
-          We couldn&apos;t load the cabins right now. Please try again.
-        </p>
-
-        <button
-          type="button"
-          onClick={reset}
-          className="bg-accent-500 px-6 py-3 font-semibold text-primary-900 transition-colors hover:bg-accent-600"
-        >
-          Try again
-        </button>
-      </div>
-    </div>
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase.auth.signInWithPassword(
+    parsedCredentials.data,
   );
+
+  if (error) {
+    if (error.code === &quot;email_not_confirmed&quot;) {
+      return {
+        error: &quot;Please confirm your email address before signing in.&quot;,
+      };
+    }
+
+    return { error: &quot;The email or password is incorrect. Please try again.&quot; };
+  }
+
+  redirect(safeLocalRedirect(formData.get(&quot;next&quot;)));
 }
-</file>
 
-<file path="app/cabins/loading.tsx">
-import { Spinner } from "../components";
+export async function signUpAction(
+  _previousState: ActionState,
+  formData: FormData,
+): Promise&lt;ActionState&gt; {
+  const parsedCredentials = parseCredentials(formData, &quot;signup&quot;);
 
-export default function Loading() {
+  if (!parsedCredentials.success) {
+    return parsedCredentials.state;
+  }
+
+  const next = safeLocalRedirect(formData.get(&quot;next&quot;));
+  const emailRedirectTo = await getCallbackUrl(next);
+
+  if (!emailRedirectTo) {
+    return {
+      error: &quot;We couldn&apos;t prepare the confirmation link. Please try again.&quot;,
+    };
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.auth.signUp({
+    ...parsedCredentials.data,
+    options: { emailRedirectTo },
+  });
+
+  if (error) {
+    return {
+      error:
+        &quot;We couldn&apos;t create your account with those details. Check your email and password, then try again.&quot;,
+    };
+  }
+
+  if (!data.session) {
+    return {
+      message:
+        &quot;If this email address can be registered, a confirmation email will arrive shortly. Confirm your address before signing in.&quot;,
+    };
+  }
+
+  redirect(next);
+}
+
+export async function signOutAction(
+  _previousState: ActionState,
+  _formData: FormData,
+): Promise&lt;ActionState&gt; {
+  void _previousState;
+  void _formData;
+
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase.auth.signOut({ scope: &quot;local&quot; });
+
+  if (error) {
+    return { error: &quot;We couldn&apos;t sign you out. Please try again.&quot; };
+  }
+
+  redirect(&quot;/&quot;);
+}</file><file path="features/auth/safe-local-redirect.ts">const LOCAL_ORIGIN = &quot;https://wild-oasis.local&quot;;
+
+export function safeLocalRedirect(value: unknown, fallback = &quot;/account&quot;) {
+  if (
+    typeof value !== &quot;string&quot; ||
+    !value.startsWith(&quot;/&quot;) ||
+    value.startsWith(&quot;//&quot;) ||
+    value.includes(&quot;\\&quot;) ||
+    /[\u0000-\u001f\u007f]/.test(value)
+  ) {
+    return fallback;
+  }
+
+  const destination = new URL(value, LOCAL_ORIGIN);
+
+  if (destination.origin !== LOCAL_ORIGIN) {
+    return fallback;
+  }
+
+  return `${destination.pathname}${destination.search}${destination.hash}`;
+}</file><file path="features/auth/schemas.ts">import { z } from &quot;zod&quot;;
+
+const emailSchema = z
+  .string()
+  .trim()
+  .max(254)
+  .email()
+  .transform((email) =&gt; email.toLowerCase());
+
+const passwordSchema = z.string().max(128);
+
+export const signInSchema = z.object({
+  email: emailSchema,
+  password: passwordSchema.min(1),
+});
+
+export const signUpSchema = z.object({
+  email: emailSchema,
+  password: passwordSchema.min(8),
+});</file><file path="features/cabins/components/CabinBrowser.tsx">&quot;use client&quot;;
+
+import { useEffect, useRef } from &quot;react&quot;;
+import { useSearchParams } from &quot;next/navigation&quot;;
+
+import CabinList from &quot;./CabinList&quot;;
+import {
+  capacityRanges,
+  isCapacityFilter,
+  type CabinFilter,
+} from &quot;../filter&quot;;
+import type { Cabin } from &quot;../types&quot;;
+
+const filters: Array&lt;{ value: CabinFilter; label: string }&gt; = [
+  { value: &quot;all&quot;, label: &quot;All cabins&quot; },
+  { value: &quot;2-3&quot;, label: &quot;2—3 guests&quot; },
+  { value: &quot;4-7&quot;, label: &quot;4—7 guests&quot; },
+  { value: &quot;8-12&quot;, label: &quot;8—12 guests&quot; },
+];
+
+function getSelectionMarkName(filter: CabinFilter) {
+  return `cabin-filter-selected:${filter}`;
+}
+
+export default function CabinBrowser({
+  cabins,
+}: {
+  cabins: Cabin[];
+}) {
+  const searchParams = useSearchParams();
+  const capacityParams = searchParams.getAll(&quot;capacity&quot;);
+  const filter: CabinFilter =
+    capacityParams.length === 1 &amp;&amp; isCapacityFilter(capacityParams[0])
+      ? capacityParams[0]
+      : &quot;all&quot;;
+  const previousFilter = useRef(filter);
+
+  useEffect(() =&gt; {
+    if (previousFilter.current === filter) {
+      return;
+    }
+
+    previousFilter.current = filter;
+
+    const startMark = getSelectionMarkName(filter);
+    const [startEntry] = performance.getEntriesByName(startMark, &quot;mark&quot;);
+
+    if (!startEntry) {
+      return;
+    }
+
+    let secondFrame = 0;
+    const firstFrame = requestAnimationFrame(() =&gt; {
+      secondFrame = requestAnimationFrame(() =&gt; {
+        if (!performance.getEntriesByName(startMark, &quot;mark&quot;).length) {
+          return;
+        }
+
+        const endMark = `cabin-filter-results-visible:${filter}`;
+        performance.mark(endMark);
+        performance.measure(
+          `cabin-filter-results-visible:${filter}`,
+          startMark,
+          endMark,
+        );
+
+        console.info(
+          &quot;[cabin-perf]&quot;,
+          JSON.stringify({
+            event: &quot;results-visible&quot;,
+            filter,
+            durationMs: Number(
+              (performance.now() - startEntry.startTime).toFixed(1),
+            ),
+          }),
+        );
+
+        performance.clearMarks(startMark);
+        performance.clearMarks(endMark);
+      });
+    });
+
+    return () =&gt; {
+      cancelAnimationFrame(firstFrame);
+      cancelAnimationFrame(secondFrame);
+    };
+  }, [filter]);
+
+  let visibleCabins = cabins;
+
+  if (filter !== &quot;all&quot;) {
+    const [minCapacity, maxCapacity] = capacityRanges[filter];
+    visibleCabins = cabins.filter(
+      (cabin) =&gt;
+        cabin.maxCapacity &gt;= minCapacity &amp;&amp; cabin.maxCapacity &lt;= maxCapacity,
+    );
+  }
+
+  function handleFilterChange(nextFilter: CabinFilter) {
+    if (nextFilter === filter) {
+      return;
+    }
+
+    for (const item of filters) {
+      performance.clearMarks(getSelectionMarkName(item.value));
+    }
+    performance.mark(getSelectionMarkName(nextFilter));
+
+    const params = new URLSearchParams(window.location.search);
+
+    if (nextFilter === &quot;all&quot;) {
+      params.delete(&quot;capacity&quot;);
+    } else {
+      params.set(&quot;capacity&quot;, nextFilter);
+    }
+
+    const queryString = params.toString();
+    const url = new URL(window.location.href);
+    url.search = queryString;
+    window.history.pushState(null, &quot;&quot;, url);
+  }
+
   return (
-    <div className="flex min-h-100 items-center justify-center">
-      <div className="flex items-center gap-3 text-sm text-primary-400">
-        <Spinner />
-        <span>Loading cabins...</span>
-      </div>
-    </div>
+    &lt;&gt;
+      &lt;div className=&quot;mb-4 flex justify-end&quot;&gt;
+        &lt;div
+          role=&quot;group&quot;
+          aria-label=&quot;Filter cabins by capacity&quot;
+          className=&quot;grid grid-cols-2 border border-primary-800 sm:flex&quot;
+        &gt;
+          {filters.map((item) =&gt; {
+            const isActive = filter === item.value;
+
+            return (
+              &lt;button
+                key={item.value}
+                type=&quot;button&quot;
+                aria-pressed={isActive}
+                onClick={() =&gt; handleFilterChange(item.value)}
+                className={`px-5 py-2 text-sm font-medium transition-colors ${
+                  isActive
+                    ? &quot;bg-accent-500 text-primary-900&quot;
+                    : &quot;hover:bg-primary-900&quot;
+                }`}
+              &gt;
+                {item.label}
+              &lt;/button&gt;
+            );
+          })}
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;CabinList cabins={visibleCabins} /&gt;
+    &lt;/&gt;
   );
-}
-</file>
+}</file><file path="features/cabins/components/CabinCard.tsx">import Image from &quot;next/image&quot;;
+import Link from &quot;next/link&quot;;
+import { UsersIcon } from &quot;@heroicons/react/24/solid&quot;;
 
-<file path="app/components/CabinCard.tsx">
-import Image from "next/image";
-import Link from "next/link";
-import { UsersIcon } from "@heroicons/react/24/solid";
-
-import type { Cabin } from "../types/cabin";
+import type { Cabin } from &quot;../types&quot;;
 
 type CabinCardProps = {
   cabin: Cabin;
@@ -664,170 +1147,162 @@ export default function CabinCard({ cabin }: CabinCardProps) {
     cabin;
 
   return (
-    <div className="flex border border-primary-800">
-      <div className="relative flex-1">
-        <Image
+    &lt;div className=&quot;flex border border-primary-800&quot;&gt;
+      &lt;div className=&quot;relative flex-1&quot;&gt;
+        &lt;Image
           src={image}
           fill
-          sizes="(max-width: 270px) 1px, (max-width: 639px) calc(50vw - 134px), (max-width: 767px) calc(50vw - 142px), (max-width: 1023px) calc(25vw - 138px), (max-width: 1279px) calc(25vw - 146px), (max-width: 1353px) calc(25vw - 148px), 188px"
+          sizes=&quot;(max-width: 270px) 1px, (max-width: 639px) calc(50vw - 134px), (max-width: 767px) calc(50vw - 142px), (max-width: 1023px) calc(25vw - 138px), (max-width: 1279px) calc(25vw - 146px), (max-width: 1353px) calc(25vw - 148px), 188px&quot;
           alt={`Cabin ${name}`}
-          className="object-cover border-r border-primary-800"
-        />
-      </div>
+          className=&quot;object-cover border-r border-primary-800&quot;
+        /&gt;
+      &lt;/div&gt;
 
-      <div className="grow">
-        <div className="bg-primary-950 px-7 pt-5 pb-4">
-          <h3 className="text-accent-500 font-semibold text-2xl mb-3">
+      &lt;div className=&quot;grow&quot;&gt;
+        &lt;div className=&quot;bg-primary-950 px-7 pt-5 pb-4&quot;&gt;
+          &lt;h3 className=&quot;text-accent-500 font-semibold text-2xl mb-3&quot;&gt;
             Cabin {cabinNumber}
-          </h3>
+          &lt;/h3&gt;
 
-          <div className="flex items-center gap-3 mb-2">
-            <UsersIcon className="h-5 w-5 text-primary-600" />
+          &lt;div className=&quot;flex items-center gap-3 mb-2&quot;&gt;
+            &lt;UsersIcon className=&quot;h-5 w-5 text-primary-600&quot; /&gt;
 
-            <p className="text-lg text-primary-200">
-              For up to <span className="font-bold">{maxCapacity}</span> guests
-            </p>
-          </div>
+            &lt;p className=&quot;text-lg text-primary-200&quot;&gt;
+              For up to &lt;span className=&quot;font-bold&quot;&gt;{maxCapacity}&lt;/span&gt; guests
+            &lt;/p&gt;
+          &lt;/div&gt;
 
-          <p className="flex items-baseline justify-end gap-3">
-            {discount > 0 ? (
-              <>
-                <span className="text-3xl font-[350]">
+          &lt;p className=&quot;flex items-baseline justify-end gap-3&quot;&gt;
+            {discount &gt; 0 ? (
+              &lt;&gt;
+                &lt;span className=&quot;text-3xl font-[350]&quot;&gt;
                   ${regularPrice - discount}
-                </span>
+                &lt;/span&gt;
 
-                <span className="line-through font-semibold text-primary-600">
+                &lt;span className=&quot;line-through font-semibold text-primary-400&quot;&gt;
                   ${regularPrice}
-                </span>
-              </>
+                &lt;/span&gt;
+              &lt;/&gt;
             ) : (
-              <span className="text-3xl font-[350]">${regularPrice}</span>
+              &lt;span className=&quot;text-3xl font-[350]&quot;&gt;${regularPrice}&lt;/span&gt;
             )}
 
-            <span className="text-primary-200">/ night</span>
-          </p>
-        </div>
+            &lt;span className=&quot;text-primary-200&quot;&gt;/ night&lt;/span&gt;
+          &lt;/p&gt;
+        &lt;/div&gt;
 
-        <div className="bg-primary-950 border-t border-primary-800 text-right">
-          <Link
+        &lt;div className=&quot;bg-primary-950 border-t border-primary-800 text-right&quot;&gt;
+          &lt;Link
             href={`/cabins/${id}`}
-            className="inline-block border-l border-primary-800 px-6 py-4 transition-all hover:bg-accent-600 hover:text-primary-900"
-          >
-            Details & reservation &rarr;
-          </Link>
-        </div>
-      </div>
-    </div>
+            className=&quot;inline-block border-l border-primary-800 px-6 py-4 transition-all hover:bg-accent-600 hover:text-primary-900&quot;
+          &gt;
+            Details &amp; reservation &amp;rarr;
+          &lt;/Link&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
   );
-}
-</file>
+}</file><file path="features/cabins/components/CabinDetail.tsx">import Image from &quot;next/image&quot;;
+import Link from &quot;next/link&quot;;
 
-<file path="app/components/CabinDetail.tsx">
-import Image from "next/image";
-import Link from "next/link";
+import type { Cabin } from &quot;../types&quot;;
 
-import type { Cabin } from "@/app/types/cabin";
-
-import { CabinReservation } from ".";
+import CabinReservation from &quot;@/features/reservations/components/CabinReservation&quot;;
 
 export default function CabinDetail({ cabin }: { cabin: Cabin }) {
   const discountedPrice = Math.max(cabin.regularPrice - cabin.discount, 0);
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold tracking-tight text-primary-100">
+    &lt;div className=&quot;mx-auto w-full max-w-6xl&quot;&gt;
+      &lt;div className=&quot;mb-6 flex items-center justify-between gap-4&quot;&gt;
+        &lt;h1 className=&quot;text-4xl font-medium text-accent-400&quot;&gt;
           Cabin #{cabin.cabinNumber}
-        </h1>
+        &lt;/h1&gt;
 
-        <Link
-          href="/cabins"
-          className="inline-flex items-center gap-2 border border-primary-800 bg-primary-900 px-4 py-2 text-sm font-medium text-primary-100 transition-colors hover:border-accent-500 hover:bg-accent-500 hover:text-primary-900"
-        >
-          <span aria-hidden="true">←</span>
+        &lt;Link
+          href=&quot;/cabins&quot;
+          className=&quot;inline-flex items-center gap-2 border border-primary-800 bg-primary-900 px-4 py-2 text-sm font-medium text-primary-100 transition-colors hover:border-accent-500 hover:bg-accent-500 hover:text-primary-900&quot;
+        &gt;
+          &lt;span aria-hidden=&quot;true&quot;&gt;←&lt;/span&gt;
           Back to cabins
-        </Link>
-      </div>
+        &lt;/Link&gt;
+      &lt;/div&gt;
 
-      <section className="overflow-hidden border border-primary-800 bg-primary-950">
-        <div className="relative aspect-16/7 w-full">
-          <Image
+      &lt;section className=&quot;overflow-hidden border border-primary-800 bg-primary-950&quot;&gt;
+        &lt;div className=&quot;relative aspect-16/7 w-full&quot;&gt;
+          &lt;Image
             src={cabin.image}
             alt={`Cabin ${cabin.name}`}
             fill
             priority
-            className="object-cover"
-            sizes="(max-width: 1024px) 100vw, 1200px"
-          />
-        </div>
+            className=&quot;object-cover&quot;
+            sizes=&quot;(max-width: 1024px) 100vw, 1200px&quot;
+          /&gt;
+        &lt;/div&gt;
 
-        <div className="grid gap-8 p-6 lg:grid-cols-[1fr_320px] lg:p-8">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="bg-primary-800 px-2.5 py-1 text-xs font-medium text-primary-100">
+        &lt;div className=&quot;grid gap-8 p-6 lg:grid-cols-[1fr_320px] lg:p-8&quot;&gt;
+          &lt;div&gt;
+            &lt;div className=&quot;flex flex-wrap items-center gap-2&quot;&gt;
+              &lt;span className=&quot;bg-primary-800 px-2.5 py-1 text-xs font-medium text-primary-100&quot;&gt;
                 Cabin
-              </span>
+              &lt;/span&gt;
 
-              <span className="bg-primary-800 px-2.5 py-1 text-xs font-medium text-primary-100">
+              &lt;span className=&quot;bg-primary-800 px-2.5 py-1 text-xs font-medium text-primary-100&quot;&gt;
                 Up to {cabin.maxCapacity} guests
-              </span>
+              &lt;/span&gt;
 
-              {cabin.discount > 0 && (
-                <span className="bg-green-950 px-2.5 py-1 text-xs font-medium text-green-300">
+              {cabin.discount &gt; 0 &amp;&amp; (
+                &lt;span className=&quot;bg-green-950 px-2.5 py-1 text-xs font-medium text-green-300&quot;&gt;
                   ${cabin.discount} discount
-                </span>
+                &lt;/span&gt;
               )}
-            </div>
+            &lt;/div&gt;
 
-            <h2 className="mt-5 text-xl font-semibold text-primary-100">
+            &lt;h2 className=&quot;mt-5 text-xl font-semibold text-primary-100&quot;&gt;
               {cabin.name}
-            </h2>
+            &lt;/h2&gt;
 
-            <p className="mt-4 max-w-3xl text-sm leading-6 text-primary-300">
+            &lt;p className=&quot;mt-4 max-w-3xl text-lg leading-8 text-primary-200&quot;&gt;
               {cabin.description}
-            </p>
+            &lt;/p&gt;
 
-            <div className="mt-8 grid gap-4 border-t border-primary-800 pt-6 sm:grid-cols-3">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-primary-500">
+            &lt;div className=&quot;mt-8 grid gap-4 border-t border-primary-800 pt-6 sm:grid-cols-3&quot;&gt;
+              &lt;div&gt;
+                &lt;p className=&quot;text-xs font-medium uppercase tracking-wide text-primary-400&quot;&gt;
                   Capacity
-                </p>
-                <p className="mt-1 text-sm font-medium text-primary-100">
+                &lt;/p&gt;
+                &lt;p className=&quot;mt-1 text-sm font-medium text-primary-100&quot;&gt;
                   {cabin.maxCapacity} guests
-                </p>
-              </div>
+                &lt;/p&gt;
+              &lt;/div&gt;
 
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-primary-500">
+              &lt;div&gt;
+                &lt;p className=&quot;text-xs font-medium uppercase tracking-wide text-primary-400&quot;&gt;
                   Regular price
-                </p>
-                <p className="mt-1 text-sm font-medium text-primary-100">
+                &lt;/p&gt;
+                &lt;p className=&quot;mt-1 text-sm font-medium text-primary-100&quot;&gt;
                   ${cabin.regularPrice}
-                </p>
-              </div>
+                &lt;/p&gt;
+              &lt;/div&gt;
 
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-primary-500">
+              &lt;div&gt;
+                &lt;p className=&quot;text-xs font-medium uppercase tracking-wide text-primary-400&quot;&gt;
                   Final price
-                </p>
-                <p className="mt-1 text-sm font-semibold text-accent-400">
+                &lt;/p&gt;
+                &lt;p className=&quot;mt-1 text-sm font-semibold text-accent-400&quot;&gt;
                   ${discountedPrice}
-                </p>
-              </div>
-            </div>
-          </div>
+                &lt;/p&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
 
-          <CabinReservation cabin={cabin} />
-        </div>
-      </section>
-    </div>
+          &lt;CabinReservation cabin={cabin} /&gt;
+        &lt;/div&gt;
+      &lt;/section&gt;
+    &lt;/div&gt;
   );
-}
-</file>
-
-<file path="app/components/CabinList.tsx">
-import type { Cabin } from "../types/cabin";
-import CabinCard from "./CabinCard";
+}</file><file path="features/cabins/components/CabinList.tsx">import type { Cabin } from &quot;../types&quot;;
+import CabinCard from &quot;./CabinCard&quot;;
 
 type CabinListProps = {
   cabins: Cabin[];
@@ -836,34 +1311,381 @@ type CabinListProps = {
 export default function CabinList({ cabins }: CabinListProps) {
   if (cabins.length === 0) {
     return (
-      <div className="rounded-md border border-primary-800 p-8 text-center">
-        <h2 className="mb-2 text-lg font-medium text-primary-100">
+      &lt;div className=&quot;border border-primary-800 p-8 text-center&quot;&gt;
+        &lt;h2 className=&quot;mb-2 text-lg font-medium text-primary-100&quot;&gt;
           No cabins available
-        </h2>
+        &lt;/h2&gt;
 
-        <p className="text-sm text-primary-400">
+        &lt;p className=&quot;text-sm text-primary-400&quot;&gt;
           There are currently no cabins available. Please check back later.
-        </p>
-      </div>
+        &lt;/p&gt;
+      &lt;/div&gt;
     );
   }
 
   return (
-    <div className="grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:gap-12 xl:gap-14">
-      {cabins.map((cabin) => (
-        <CabinCard cabin={cabin} key={cabin.id} />
+    &lt;div className=&quot;grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:gap-12 xl:gap-14&quot;&gt;
+      {cabins.map((cabin) =&gt; (
+        &lt;CabinCard cabin={cabin} key={cabin.id} /&gt;
       ))}
-    </div>
+    &lt;/div&gt;
   );
+}</file><file path="features/cabins/filter.ts">import type { CabinFilter } from &quot;./types&quot;;
+
+export type { CabinFilter } from &quot;./types&quot;;
+
+export const capacityRanges: Record&lt;
+  Exclude&lt;CabinFilter, &quot;all&quot;&gt;,
+  readonly [number, number]
+&gt; = {
+  &quot;2-3&quot;: [2, 3],
+  &quot;4-7&quot;: [4, 7],
+  &quot;8-12&quot;: [8, 12],
+};
+
+export function isCapacityFilter(
+  value: unknown,
+): value is Exclude&lt;CabinFilter, &quot;all&quot;&gt; {
+  return (
+    typeof value === &quot;string&quot; &amp;&amp;
+    Object.prototype.hasOwnProperty.call(capacityRanges, value)
+  );
+}</file><file path="features/cabins/queries.ts">import { cacheLife, cacheTag } from &quot;next/cache&quot;;
+
+import type { Cabin } from &quot;./types&quot;;
+import { supabase } from &quot;@/lib/supabase/data-client&quot;;
+
+export async function getCabins(): Promise&lt;Cabin[]&gt; {
+  &quot;use cache&quot;;
+  cacheLife(&quot;hours&quot;);
+  cacheTag(&quot;cabins&quot;);
+
+  const query = supabase
+    .from(&quot;cabins&quot;)
+    .select(
+      &quot;id, name, maxCapacity, regularPrice, discount, image, description, cabin_number&quot;,
+    );
+
+  const { data, error } = await query;
+
+  if (error) {
+    throw new Error(&quot;Cabins could not be loaded&quot;);
+  }
+
+  return data.map((cabin) =&gt; ({
+    ...cabin,
+    cabinNumber: cabin.cabin_number,
+  }));
 }
-</file>
 
-<file path="app/components/CabinReservation.tsx">
-"use client";
+export async function getCabin(cabinId: string): Promise&lt;Cabin | null&gt; {
+  &quot;use cache&quot;;
+  cacheLife(&quot;hours&quot;);
+  cacheTag(&quot;cabins&quot;, `cabin-${cabinId}`);
 
-import { useMemo, useState, type FormEvent } from "react";
+  const { data, error } = await supabase
+    .from(&quot;cabins&quot;)
+    .select(&quot;*&quot;)
+    .eq(&quot;id&quot;, cabinId)
+    .maybeSingle();
 
-import type { Cabin } from "@/app/types/cabin";
+  if (error) {
+    throw new Error(&quot;Cabin could not be loaded&quot;);
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return {
+    ...data,
+    cabinNumber: data.cabin_number,
+  };
+}</file><file path="features/cabins/types.ts">export type CabinFilter = &quot;all&quot; | &quot;2-3&quot; | &quot;4-7&quot; | &quot;8-12&quot;;
+
+export type Cabin = {
+  id: string;
+  cabinNumber: string;
+  name: string;
+  maxCapacity: number;
+  regularPrice: number;
+  discount: number;
+  image: string;
+  description: string;
+};</file><file path="features/profile/components/ProfileForm.tsx">&quot;use client&quot;;
+
+import { useActionState } from &quot;react&quot;;
+
+import { saveProfileAction } from &quot;@/features/profile/actions&quot;;
+import type { ActionState } from &quot;@/lib/action-state&quot;;
+import type { GuestProfile } from &quot;../schemas&quot;;
+
+type ProfileFormProps = {
+  email?: string;
+  profile?: GuestProfile;
+};
+
+const initialState: ActionState = {};
+const inputClassName =
+  &quot;w-full border border-primary-700 bg-primary-900 px-4 py-3 text-primary-100 outline-none transition-colors focus:border-accent-500&quot;;
+
+export default function ProfileForm({ email, profile }: ProfileFormProps) {
+  const [state, formAction, pending] = useActionState(
+    saveProfileAction,
+    initialState,
+  );
+
+  return (
+    &lt;form
+      action={formAction}
+      className=&quot;max-w-2xl space-y-5 border border-primary-800 bg-primary-950 p-6 sm:p-8&quot;
+    &gt;
+      {email ? (
+        &lt;div className=&quot;text-sm text-primary-300&quot;&gt;
+          &lt;p className=&quot;mb-1 font-medium&quot;&gt;Email address&lt;/p&gt;
+          &lt;p className=&quot;text-primary-100&quot;&gt;{email}&lt;/p&gt;
+          &lt;p className=&quot;mt-1 text-primary-400&quot;&gt;
+            Your email is managed by your sign-in account.
+          &lt;/p&gt;
+        &lt;/div&gt;
+      ) : (
+        &lt;p className=&quot;text-sm text-primary-300&quot;&gt;
+          Your email address will come from your authenticated sign-in account.
+        &lt;/p&gt;
+      )}
+
+      &lt;label className=&quot;block text-sm font-medium text-primary-300&quot;&gt;
+        &lt;span className=&quot;mb-2 block&quot;&gt;Full name&lt;/span&gt;
+        &lt;input
+          name=&quot;fullName&quot;
+          type=&quot;text&quot;
+          autoComplete=&quot;name&quot;
+          maxLength={150}
+          defaultValue={profile?.fullName}
+          required
+          className={inputClassName}
+        /&gt;
+      &lt;/label&gt;
+
+      &lt;label className=&quot;block text-sm font-medium text-primary-300&quot;&gt;
+        &lt;span className=&quot;mb-2 block&quot;&gt;Nationality&lt;/span&gt;
+        &lt;input
+          name=&quot;nationality&quot;
+          type=&quot;text&quot;
+          autoComplete=&quot;country-name&quot;
+          maxLength={100}
+          defaultValue={profile?.nationality}
+          required
+          className={inputClassName}
+        /&gt;
+      &lt;/label&gt;
+
+      &lt;label className=&quot;block text-sm font-medium text-primary-300&quot;&gt;
+        &lt;span className=&quot;mb-2 block&quot;&gt;National ID&lt;/span&gt;
+        &lt;input
+          name=&quot;nationalID&quot;
+          type=&quot;text&quot;
+          maxLength={100}
+          defaultValue={profile?.nationalID}
+          required
+          className={inputClassName}
+        /&gt;
+      &lt;/label&gt;
+
+      &lt;label className=&quot;block text-sm font-medium text-primary-300&quot;&gt;
+        &lt;span className=&quot;mb-2 block&quot;&gt;Country flag&lt;/span&gt;
+        &lt;input
+          name=&quot;countryFlag&quot;
+          type=&quot;text&quot;
+          maxLength={16}
+          defaultValue={profile?.countryFlag}
+          required
+          className={inputClassName}
+        /&gt;
+      &lt;/label&gt;
+
+      {state.error &amp;&amp; (
+        &lt;p role=&quot;alert&quot; className=&quot;text-sm text-red-300&quot;&gt;
+          {state.error}
+        &lt;/p&gt;
+      )}
+
+      &lt;button
+        type=&quot;submit&quot;
+        disabled={pending}
+        className=&quot;bg-accent-500 px-5 py-3 font-semibold text-primary-900 transition-colors hover:bg-accent-600 disabled:cursor-wait disabled:opacity-60&quot;
+      &gt;
+        {pending
+          ? &quot;Saving...&quot;
+          : profile
+            ? &quot;Save profile changes&quot;
+            : &quot;Create profile&quot;}
+      &lt;/button&gt;
+    &lt;/form&gt;
+  );
+}</file><file path="features/profile/actions.ts">&quot;use server&quot;;
+
+import { revalidatePath } from &quot;next/cache&quot;;
+import { redirect } from &quot;next/navigation&quot;;
+
+import { isUnauthenticatedAuthError } from &quot;@/lib/auth-errors&quot;;
+import type { ActionState } from &quot;@/lib/action-state&quot;;
+import { createServerSupabaseClient } from &quot;@/lib/supabase/server&quot;;
+import { guestProfileSchema } from &quot;./schemas&quot;;
+
+function getSaveError(code: string | undefined): string {
+  if (code === &quot;42501&quot;) {
+    return &quot;Profile saving is unavailable until the guest profile permissions migration has been applied.&quot;;
+  }
+
+  if (code === &quot;23505&quot;) {
+    return &quot;A profile for your account already exists. Refresh the page and try again.&quot;;
+  }
+
+  return &quot;We couldn&apos;t save your profile. Please try again.&quot;;
+}
+
+export async function saveProfileAction(
+  _previousState: ActionState,
+  formData: FormData,
+): Promise&lt;ActionState&gt; {
+  const parsedValues = guestProfileSchema.safeParse({
+    fullName: formData.get(&quot;fullName&quot;),
+    nationality: formData.get(&quot;nationality&quot;),
+    nationalID: formData.get(&quot;nationalID&quot;),
+    countryFlag: formData.get(&quot;countryFlag&quot;),
+  });
+
+  if (!parsedValues.success) {
+    return {
+      error: &quot;Complete each field using the allowed length, then try again.&quot;,
+    };
+  }
+
+  const values = parsedValues.data;
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError &amp;&amp; isUnauthenticatedAuthError(authError)) {
+    redirect(&quot;/login?next=%2Faccount%2Fprofile&quot;);
+  }
+
+  if (authError) {
+    throw authError;
+  }
+
+  if (!user) {
+    redirect(&quot;/login?next=%2Faccount%2Fprofile&quot;);
+  }
+
+  if (!user.email) {
+    return {
+      error: &quot;Your sign-in account needs an email address to create a profile.&quot;,
+    };
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from(&quot;guests&quot;)
+    .select(&quot;id&quot;)
+    .eq(&quot;auth_user_id&quot;, user.id)
+    .maybeSingle();
+
+  if (profileError) {
+    return { error: getSaveError(profileError.code) };
+  }
+
+  const result = profile
+    ? await supabase
+        .from(&quot;guests&quot;)
+        .update(values)
+        .eq(&quot;auth_user_id&quot;, user.id)
+        .select(&quot;id&quot;)
+        .maybeSingle()
+    : await supabase
+        .from(&quot;guests&quot;)
+        .insert({
+          ...values,
+          auth_user_id: user.id,
+          email: user.email,
+        })
+        .select(&quot;id&quot;)
+        .single();
+
+  if (result.error) {
+    return { error: getSaveError(result.error.code) };
+  }
+
+  if (!result.data) {
+    return {
+      error: &quot;Your profile could not be found. Refresh the page and try again.&quot;,
+    };
+  }
+
+  revalidatePath(&quot;/account/profile&quot;);
+  revalidatePath(&quot;/account&quot;);
+  redirect(&quot;/account/profile&quot;);
+}</file><file path="features/profile/queries.ts">import &quot;server-only&quot;;
+
+import { unstable_noStore } from &quot;next/cache&quot;;
+import { redirect } from &quot;next/navigation&quot;;
+
+import { isUnauthenticatedAuthError } from &quot;@/lib/auth-errors&quot;;
+import { createServerSupabaseClient } from &quot;@/lib/supabase/server&quot;;
+
+export async function getAccountGuest() {
+  unstable_noStore();
+
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError &amp;&amp; isUnauthenticatedAuthError(authError)) {
+    redirect(&quot;/login?next=%2Faccount&quot;);
+  }
+
+  if (authError) {
+    throw authError;
+  }
+
+  if (!user) {
+    redirect(&quot;/login?next=%2Faccount&quot;);
+  }
+
+  const { data: guest, error } = await supabase
+    .from(&quot;guests&quot;)
+    .select(&quot;id, fullName, email, nationality, nationalID, countryFlag&quot;)
+    .eq(&quot;auth_user_id&quot;, user.id)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return { guest, supabase };
+}</file><file path="features/profile/schemas.ts">import { z } from &quot;zod&quot;;
+
+export const guestProfileSchema = z.object({
+  fullName: z.string().trim().min(1).max(150),
+  nationality: z.string().trim().min(1).max(100),
+  nationalID: z.string().trim().min(1).max(100),
+  countryFlag: z.string().trim().min(1).max(16),
+});
+
+export type GuestProfile = z.infer&lt;typeof guestProfileSchema&gt;;</file><file path="features/reservations/components/CabinReservation.tsx">&quot;use client&quot;;
+
+import { useActionState, useMemo, useState } from &quot;react&quot;;
+import Link from &quot;next/link&quot;;
+
+import { createReservationAction } from &quot;@/features/reservations/actions&quot;;
+import type { ActionState } from &quot;@/lib/action-state&quot;;
+import type { Cabin } from &quot;@/features/cabins/types&quot;;
+
+const initialState: ActionState = {};
 
 function getDefaultDates() {
   const start = new Date();
@@ -879,16 +1701,18 @@ function getDefaultDates() {
 }
 
 export default function CabinReservation({ cabin }: { cabin: Cabin }) {
-  const defaultDates = useMemo(() => getDefaultDates(), []);
+  const defaultDates = useMemo(() =&gt; getDefaultDates(), []);
+  const [state, formAction, pending] = useActionState(
+    createReservationAction,
+    initialState,
+  );
   const [reservation, setReservation] = useState({
     startDate: defaultDates.startDate,
     endDate: defaultDates.endDate,
     guests: Math.min(cabin.maxCapacity, 2),
-    notes: "",
+    notes: &quot;&quot;,
   });
-  const [statusMessage, setStatusMessage] = useState("");
-
-  const nights = useMemo(() => {
+  const nights = useMemo(() =&gt; {
     const start = new Date(reservation.startDate);
     const end = new Date(reservation.endDate);
 
@@ -901,648 +1725,1121 @@ export default function CabinReservation({ cabin }: { cabin: Cabin }) {
   }, [reservation.startDate, reservation.endDate]);
 
   const discountedPrice = Math.max(cabin.regularPrice - cabin.discount, 0);
-  const totalPrice = nights > 0 ? nights * discountedPrice : 0;
+  const totalPrice = nights &gt; 0 ? nights * discountedPrice : 0;
 
-  const guestOptions = useMemo(() => {
-    return Array.from({ length: cabin.maxCapacity }, (_, index) => index + 1);
+  const guestOptions = useMemo(() =&gt; {
+    return Array.from({ length: cabin.maxCapacity }, (_, index) =&gt; index + 1);
   }, [cabin.maxCapacity]);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    if (!reservation.startDate || !reservation.endDate || nights <= 0) {
-      setStatusMessage("Choose a valid check-in and check-out date.");
-      return;
-    }
-
-    if (new Date(reservation.endDate) <= new Date(reservation.startDate)) {
-      setStatusMessage("Check-out must be after check-in.");
-      return;
-    }
-
-    setStatusMessage(
-      `Reservation summary for ${cabin.name}: ${nights} ${
-        nights === 1 ? "night" : "nights"
-      } for ${reservation.guests} ${
-        reservation.guests === 1 ? "guest" : "guests"
-      }.`,
-    );
-  };
+  const today = new Date().toISOString().slice(0, 10);
+  const checkoutMinimum =
+    reservation.startDate &amp;&amp;
+    !Number.isNaN(Date.parse(`${reservation.startDate}T00:00:00Z`))
+      ? new Date(
+          Date.parse(`${reservation.startDate}T00:00:00Z`) + 86_400_000,
+        )
+          .toISOString()
+          .slice(0, 10)
+      : today;
 
   return (
-    <aside className="border border-primary-800 bg-primary-900/50 p-5">
-      <p className="text-sm font-medium text-primary-400">Price per night</p>
+    &lt;aside className=&quot;border border-primary-800 bg-primary-900/50 p-5&quot;&gt;
+      &lt;p className=&quot;text-sm font-medium text-primary-400&quot;&gt;Price per night&lt;/p&gt;
 
-      <div className="mt-2 flex items-baseline gap-2">
-        <span className="text-3xl font-semibold text-primary-50">
+      &lt;div className=&quot;mt-2 flex items-baseline gap-2&quot;&gt;
+        &lt;span className=&quot;text-3xl font-semibold text-primary-50&quot;&gt;
           ${discountedPrice}
-        </span>
-        <span className="text-sm text-primary-400">/ night</span>
-      </div>
+        &lt;/span&gt;
+        &lt;span className=&quot;text-sm text-primary-400&quot;&gt;/ night&lt;/span&gt;
+      &lt;/div&gt;
 
-      {cabin.discount > 0 && (
-        <p className="mt-2 text-sm text-primary-400">
-          Regular price: <span className="line-through">${cabin.regularPrice}</span>
-        </p>
+      {cabin.discount &gt; 0 &amp;&amp; (
+        &lt;p className=&quot;mt-2 text-sm text-primary-400&quot;&gt;
+          Regular price: &lt;span className=&quot;line-through&quot;&gt;${cabin.regularPrice}&lt;/span&gt;
+        &lt;/p&gt;
       )}
 
-      <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="block text-sm text-primary-200">
-            <span className="mb-1 block text-xs uppercase tracking-wide text-primary-500">
+      &lt;form action={formAction} className=&quot;mt-6 space-y-4&quot;&gt;
+        &lt;input type=&quot;hidden&quot; name=&quot;cabinId&quot; value={cabin.id} /&gt;
+
+        &lt;div className=&quot;grid gap-4 sm:grid-cols-2&quot;&gt;
+          &lt;label className=&quot;block text-sm text-primary-200&quot;&gt;
+            &lt;span className=&quot;mb-1 block text-xs uppercase tracking-wide text-primary-400&quot;&gt;
               Check-in
-            </span>
-            <input
-              type="date"
+            &lt;/span&gt;
+            &lt;input
+              type=&quot;date&quot;
+              name=&quot;startDate&quot;
+              min={today}
+              required
               value={reservation.startDate}
-              onChange={(event) =>
-                setReservation((current) => ({
+              onChange={(event) =&gt;
+                setReservation((current) =&gt; ({
                   ...current,
                   startDate: event.target.value,
                 }))
               }
-              className="w-full border border-primary-700 bg-primary-950 px-3 py-2 text-primary-100 outline-none transition-colors focus:border-accent-500"
-            />
-          </label>
+              className=&quot;w-full border border-primary-700 bg-primary-900 px-3 py-2 text-primary-100 outline-none transition-colors focus:border-accent-500&quot;
+            /&gt;
+          &lt;/label&gt;
 
-          <label className="block text-sm text-primary-200">
-            <span className="mb-1 block text-xs uppercase tracking-wide text-primary-500">
+          &lt;label className=&quot;block text-sm text-primary-200&quot;&gt;
+            &lt;span className=&quot;mb-1 block text-xs uppercase tracking-wide text-primary-400&quot;&gt;
               Check-out
-            </span>
-            <input
-              type="date"
+            &lt;/span&gt;
+            &lt;input
+              type=&quot;date&quot;
+              name=&quot;endDate&quot;
+              min={checkoutMinimum}
+              required
               value={reservation.endDate}
-              onChange={(event) =>
-                setReservation((current) => ({
+              onChange={(event) =&gt;
+                setReservation((current) =&gt; ({
                   ...current,
                   endDate: event.target.value,
                 }))
               }
-              className="w-full border border-primary-700 bg-primary-950 px-3 py-2 text-primary-100 outline-none transition-colors focus:border-accent-500"
-            />
-          </label>
-        </div>
+              className=&quot;w-full border border-primary-700 bg-primary-900 px-3 py-2 text-primary-100 outline-none transition-colors focus:border-accent-500&quot;
+            /&gt;
+          &lt;/label&gt;
+        &lt;/div&gt;
 
-        <label className="block text-sm text-primary-200">
-          <span className="mb-1 block text-xs uppercase tracking-wide text-primary-500">
+        &lt;label className=&quot;block text-sm text-primary-200&quot;&gt;
+          &lt;span className=&quot;mb-1 block text-xs uppercase tracking-wide text-primary-400&quot;&gt;
             Guests
-          </span>
-          <select
+          &lt;/span&gt;
+          &lt;select
+            name=&quot;numGuests&quot;
             value={reservation.guests}
-            onChange={(event) =>
-              setReservation((current) => ({
+            onChange={(event) =&gt;
+              setReservation((current) =&gt; ({
                 ...current,
                 guests: Number(event.target.value),
               }))
             }
-            className="w-full border border-primary-700 bg-primary-950 px-3 py-2 text-primary-100 outline-none transition-colors focus:border-accent-500"
-          >
-            {guestOptions.map((option) => (
-              <option key={option} value={option}>
-                {option} {option === 1 ? "guest" : "guests"}
-              </option>
+            className=&quot;w-full border border-primary-700 bg-primary-900 px-3 py-2 text-primary-100 outline-none transition-colors focus:border-accent-500&quot;
+          &gt;
+            {guestOptions.map((option) =&gt; (
+              &lt;option key={option} value={option}&gt;
+                {option} {option === 1 ? &quot;guest&quot; : &quot;guests&quot;}
+              &lt;/option&gt;
             ))}
-          </select>
-        </label>
+          &lt;/select&gt;
+        &lt;/label&gt;
 
-        <label className="block text-sm text-primary-200">
-          <span className="mb-1 block text-xs uppercase tracking-wide text-primary-500">
+        &lt;label className=&quot;block text-sm text-primary-200&quot;&gt;
+          &lt;span className=&quot;mb-1 block text-xs uppercase tracking-wide text-primary-400&quot;&gt;
             Notes
-          </span>
-          <textarea
+          &lt;/span&gt;
+          &lt;textarea
+            name=&quot;observations&quot;
             value={reservation.notes}
-            onChange={(event) =>
-              setReservation((current) => ({
+            maxLength={500}
+            onChange={(event) =&gt;
+              setReservation((current) =&gt; ({
                 ...current,
                 notes: event.target.value,
               }))
             }
             rows={3}
-            className="w-full resize-none border border-primary-700 bg-primary-950 px-3 py-2 text-primary-100 outline-none transition-colors focus:border-accent-500"
-            placeholder="Anything we should know?"
-          />
-        </label>
+            className=&quot;w-full resize-none border border-primary-700 bg-primary-900 px-3 py-2 text-primary-100 outline-none transition-colors focus:border-accent-500&quot;
+            placeholder=&quot;Anything we should know?&quot;
+          /&gt;
+        &lt;/label&gt;
 
-        <div className="rounded border border-primary-700 bg-primary-950 p-3 text-sm text-primary-200">
-          <div className="flex items-center justify-between gap-2">
-            <span>{nights} nights</span>
-            <span>${totalPrice}</span>
-          </div>
-        </div>
+        &lt;div className=&quot;border border-primary-700 bg-primary-950 p-3 text-sm text-primary-200&quot;&gt;
+          &lt;div className=&quot;flex items-center justify-between gap-2&quot;&gt;
+            &lt;span&gt;{nights} nights&lt;/span&gt;
+            &lt;span&gt;${totalPrice}&lt;/span&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
 
-        <button
-          type="submit"
-          className="w-full bg-accent-500 px-4 py-2.5 text-sm font-semibold text-primary-900 transition-colors hover:bg-accent-600"
-        >
-          Reserve cabin
-        </button>
+        &lt;button
+          type=&quot;submit&quot;
+          disabled={pending || Boolean(state.message)}
+          className=&quot;w-full bg-accent-500 px-4 py-2.5 text-sm font-semibold text-primary-900 transition-colors hover:bg-accent-600 disabled:cursor-wait disabled:opacity-60&quot;
+        &gt;
+          {pending
+            ? &quot;Submitting...&quot;
+            : state.message
+              ? &quot;Reservation submitted&quot;
+              : &quot;Reserve cabin&quot;}
+        &lt;/button&gt;
 
-        {statusMessage ? (
-          <p className="text-sm text-accent-400">{statusMessage}</p>
+        {state.error ? (
+          &lt;p role=&quot;alert&quot; className=&quot;text-sm text-red-300&quot;&gt;
+            {state.error}
+            {state.error ===
+              &quot;Complete your guest profile before reserving a cabin.&quot; &amp;&amp; (
+              &lt;&gt;
+                {&quot; &quot;}
+                &lt;Link
+                  href=&quot;/account/profile&quot;
+                  className=&quot;underline underline-offset-4&quot;
+                &gt;
+                  Complete your profile
+                &lt;/Link&gt;
+              &lt;/&gt;
+            )}
+          &lt;/p&gt;
+        ) : state.message ? (
+          &lt;p role=&quot;status&quot; aria-live=&quot;polite&quot; className=&quot;text-sm text-accent-400&quot;&gt;
+            {state.message}{&quot; &quot;}
+            &lt;Link
+              href=&quot;/account/reservations&quot;
+              className=&quot;underline underline-offset-4&quot;
+            &gt;
+              View reservations
+            &lt;/Link&gt;
+          &lt;/p&gt;
         ) : null}
-      </form>
-    </aside>
+      &lt;/form&gt;
+    &lt;/aside&gt;
   );
-}
-</file>
+}</file><file path="features/reservations/actions.ts">&quot;use server&quot;;
 
-<file path="app/components/Header.tsx">
-"use client";
+import { updateTag, revalidatePath } from &quot;next/cache&quot;;
+import { redirect } from &quot;next/navigation&quot;;
 
-import { usePathname } from "next/navigation";
+import { isUnauthenticatedAuthError } from &quot;@/lib/auth-errors&quot;;
+import type { ActionState } from &quot;@/lib/action-state&quot;;
+import { createServerSupabaseClient } from &quot;@/lib/supabase/server&quot;;
+import { reservationSchema } from &quot;./schemas&quot;;
 
-import Logo from "./Logo";
-import Navigation from "./Navigation";
-
-export default function Header() {
-  const pathname = usePathname();
-  const isHomePage = pathname === "/";
-
-  return (
-    <header
-      className={
-        isHomePage
-          ? "absolute inset-x-0 top-0 z-50 px-3 py-3 sm:px-6 sm:py-4 lg:px-8 lg:py-5"
-          : "relative z-20 px-3 py-3 sm:px-6 sm:py-4 lg:px-8 lg:py-5"
-      }
-    >
-      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 sm:gap-6">
-        <Logo />
-        <Navigation />
-      </div>
-    </header>
-  );
-}
-</file>
-
-<file path="app/components/index.ts">
-export { default as Navigation } from "./Navigation";
-export { default as Logo } from "./Logo";
-export { default as Header } from "./Header";
-export { default as CabinList } from "./CabinList";
-export { default as CabinCard } from "./CabinCard";
-export { default as SideNavigation } from "./SideNavigation";
-export { default as SignOutButton } from "./SignOutButton";
-export { default as Spinner } from "./Spinner";
-export { default as CabinDetail } from "./CabinDetail";
-export { default as CabinReservation } from "./CabinReservation";
-</file>
-
-<file path="app/components/Logo.tsx">
-import Image from "next/image";
-import Link from "next/link";
-
-export default function Logo() {
-  return (
-    <Link href="/" className="flex shrink-0 items-center gap-2 sm:gap-3 lg:gap-4">
-      <Image
-        src="/logo.png"
-        width={60}
-        height={60}
-        alt="The Wild Oasis logo"
-        loading="eager"
-        className="h-9 w-9 sm:h-12 sm:w-12 lg:h-15 lg:w-15"
-      />
-
-      <span className="text-sm font-semibold text-primary-100 sm:text-base lg:text-xl">
-        The Wild Oasis
-      </span>
-    </Link>
-  );
-}
-</file>
-
-<file path="app/components/Navigation.tsx">
-"use client";
-
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-
-const navItems = [
-  {
-    href: "/cabins",
-    label: "Cabins",
-  },
-  {
-    href: "/about",
-    label: "About",
-  },
-  {
-    href: "/account",
-    label: "Guest area",
-  },
-];
-
-export default function Navigation() {
-  const pathname = usePathname();
-
-  return (
-    <nav>
-      {/* Desktop navigation */}
-      <ul className="hidden items-center gap-6 text-base lg:flex lg:gap-8 lg:text-lg">
-        {navItems.map((item) => {
-          const isActive =
-            pathname === item.href || pathname.startsWith(`${item.href}/`);
-
-          return (
-            <li key={item.href}>
-              <Link
-                href={item.href}
-                aria-current={isActive ? "page" : undefined}
-                className={`transition-colors ${
-                  isActive
-                    ? "text-accent-400"
-                    : "text-primary-100 hover:text-accent-400"
-                }`}
-              >
-                {item.label}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-
-      {/* Mobile navigation */}
-      <details className="relative lg:hidden">
-        <summary className="list-none cursor-pointer border border-primary-800 px-4 py-2 text-sm font-semibold transition-colors hover:bg-primary-900 [&::-webkit-details-marker]:hidden">
-          Menu
-        </summary>
-
-        <div className="absolute right-0 top-full mt-2 w-48 border border-primary-800 bg-primary-950 shadow-lg">
-          <ul className="flex flex-col py-2">
-            {navItems.map((item) => {
-              const isActive =
-                pathname === item.href || pathname.startsWith(`${item.href}/`);
-
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    aria-current={isActive ? "page" : undefined}
-                    className={`block px-4 py-3 text-sm transition-colors ${
-                      isActive
-                        ? "bg-primary-900 text-accent-400"
-                        : "hover:bg-primary-900 hover:text-accent-400"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      </details>
-    </nav>
-  );
-}
-</file>
-
-<file path="app/components/SideNavigation.tsx">
-"use client";
-
-import Link from "next/link";
-import {
-  CalendarDaysIcon,
-  HomeIcon,
-  UserIcon,
-} from "@heroicons/react/24/solid";
-import { usePathname } from "next/navigation";
-
-import SignOutButton from "./SignOutButton";
-
-const navLinks = [
-  {
-    name: "Home",
-    href: "/account",
-    icon: HomeIcon,
-  },
-  {
-    name: "Reservations",
-    href: "/account/reservations",
-    icon: CalendarDaysIcon,
-  },
-  {
-    name: "Guest profile",
-    href: "/account/profile",
-    icon: UserIcon,
-  },
-];
-
-export default function SideNavigation() {
-  const pathname = usePathname();
-
-  return (
-    <nav className="flex flex-col">
-      <ul className="flex flex-col gap-2 text-lg">
-        {navLinks.map((link) => {
-          const Icon = link.icon;
-          const isActive =
-            pathname === link.href || pathname.startsWith(`${link.href}/`);
-
-          return (
-            <li key={link.href}>
-              <Link
-                href={link.href}
-                aria-current={isActive ? "page" : undefined}
-                className={`flex items-center gap-4 px-5 py-3 font-semibold transition-colors ${
-                  isActive
-                    ? "bg-primary-900 text-primary-100"
-                    : "text-primary-200 hover:bg-primary-900 hover:text-primary-100"
-                }`}
-              >
-                <Icon className="h-5 w-5 text-primary-600" />
-                <span>{link.name}</span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-
-      <div className="mt-6 border-t border-primary-900 pt-2">
-        <SignOutButton />
-      </div>
-    </nav>
-  );
-}
-</file>
-
-<file path="app/components/SignOutButton.tsx">
-import { ArrowRightOnRectangleIcon } from "@heroicons/react/24/solid";
-
-export default function SignOutButton() {
-  return (
-    <button
-      type="button"
-      className="flex w-full items-center gap-4 px-5 py-3 font-semibold text-primary-200 transition-colors hover:bg-primary-900 hover:text-primary-100"
-    >
-      <ArrowRightOnRectangleIcon className="h-5 w-5 text-primary-600" />
-
-      <span>Sign out</span>
-    </button>
-  );
-}
-</file>
-
-<file path="app/components/Spinner.tsx">
-type SpinnerProps = {
-  size?: "sm" | "md" | "lg";
-  className?: string;
-};
-
-export default function Spinner({ size = "md", className = "" }: SpinnerProps) {
-  const sizeClass = {
-    sm: "size-4",
-    md: "size-5",
-    lg: "size-7",
-  }[size];
-
-  return (
-    <span
-      role="status"
-      aria-label="Loading"
-      className={`inline-block animate-spin rounded-full border-2 border-current border-r-transparent ${sizeClass} ${className}`}
-    />
-  );
-}
-</file>
-
-<file path="app/lib/queries/cabin-queries.ts">
-// app/lib/queries/cabin-queries.ts
-import { queryOptions } from "@tanstack/react-query";
-
-import { getCabin, getCabins } from "../data-service";
-
-export const cabinQueries = {
-  list: () =>
-    queryOptions({
-      queryKey: ["cabins", "list"],
-      queryFn: () => getCabins(),
-    }),
-
-  detail: (cabinId: string) =>
-    queryOptions({
-      queryKey: ["cabins", "detail", cabinId],
-      queryFn: () => getCabin(cabinId),
-    }),
-};
-</file>
-
-<file path="app/lib/supabase/client.ts">
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabasePublishableKey =
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
-
-export const supabase = createClient(supabaseUrl, supabasePublishableKey);
-</file>
-
-<file path="app/lib/data-service.ts">
-import { cacheLife, cacheTag } from "next/cache";
-
-import { capacityRanges, type CabinFilter } from "./data";
-import type { Cabin } from "../types/cabin";
-import { supabase } from "./supabase/client";
-
-export async function getCabins(filter: CabinFilter = "all"): Promise<Cabin[]> {
-  "use cache";
-  const startedAt = performance.now();
-  cacheLife("hours");
-  cacheTag("cabins");
-
-  let query = supabase
-    .from("cabins")
-    .select(
-      "id, name, maxCapacity, regularPrice, discount, image, description, cabin_number",
-    );
-
-  if (filter !== "all") {
-    const [minCapacity, maxCapacity] = capacityRanges[filter];
-    query = query
-      .gte("maxCapacity", minCapacity)
-      .lte("maxCapacity", maxCapacity);
+function getReservationSaveError(code: string | undefined): string {
+  if (code === &quot;42501&quot;) {
+    return &quot;Reservation creation is unavailable until the reservation permissions migration has been applied.&quot;;
   }
 
-  const queryStartedAt = performance.now();
-  const { data, error } = await query;
-  const queryDurationMs = performance.now() - queryStartedAt;
-
-  console.info(
-    "[cabin-perf]",
-    JSON.stringify({
-      event: "supabase-query-complete",
-      filter,
-      durationMs: Number(queryDurationMs.toFixed(1)),
-    }),
-  );
-
-  if (error) {
-    throw new Error("Cabins could not be loaded");
-  }
-
-  const cabins = data.map((cabin) => ({
-    ...cabin,
-    cabinNumber: cabin.cabin_number,
-  }));
-
-  console.info(
-    "[cabin-perf]",
-    JSON.stringify({
-      event: "getCabins-cache-function-complete",
-      filter,
-      durationMs: Number((performance.now() - startedAt).toFixed(1)),
-    }),
-  );
-
-  return cabins;
+  return &quot;We couldn&apos;t create this reservation. Please try again.&quot;;
 }
 
-export async function getCabin(cabinId: string): Promise<Cabin | null> {
-  "use cache";
-  cacheLife("hours");
-  cacheTag("cabins", `cabin-${cabinId}`);
+export async function createReservationAction(
+  _previousState: ActionState,
+  formData: FormData,
+): Promise&lt;ActionState&gt; {
+  const result = reservationSchema.safeParse({
+    cabinId: formData.get(&quot;cabinId&quot;),
+    startDate: formData.get(&quot;startDate&quot;),
+    endDate: formData.get(&quot;endDate&quot;),
+    numGuests: formData.get(&quot;numGuests&quot;),
+    observations: formData.get(&quot;observations&quot;),
+  });
 
-  const { data, error } = await supabase
-    .from("cabins")
-    .select("*")
-    .eq("id", cabinId)
+  if (!result.success) {
+    return { error: &quot;Enter valid reservation details and try again.&quot; };
+  }
+
+  const input = result.data;
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError &amp;&amp; isUnauthenticatedAuthError(authError)) {
+    redirect(`/login?next=${encodeURIComponent(`/cabins/${input.cabinId}`)}`);
+  }
+
+  if (authError) {
+    return { error: &quot;We couldn&apos;t verify your sign-in. Please try again.&quot; };
+  }
+
+  if (!user) {
+    redirect(`/login?next=${encodeURIComponent(`/cabins/${input.cabinId}`)}`);
+  }
+
+  const { data: guest, error: guestError } = await supabase
+    .from(&quot;guests&quot;)
+    .select(&quot;id&quot;)
+    .eq(&quot;auth_user_id&quot;, user.id)
     .maybeSingle();
 
-  if (error) {
-    throw new Error("Cabin could not be loaded");
+  if (guestError) {
+    return { error: &quot;We couldn&apos;t verify your guest profile. Please try again.&quot; };
   }
 
-  if (!data) {
+  if (!guest) {
+    return {
+      error: &quot;Complete your guest profile before reserving a cabin.&quot;,
+    };
+  }
+
+  const { data: cabin, error: cabinError } = await supabase
+    .from(&quot;cabins&quot;)
+    .select(&quot;regularPrice, discount, maxCapacity&quot;)
+    .eq(&quot;id&quot;, input.cabinId)
+    .maybeSingle();
+
+  if (cabinError) {
+    return { error: &quot;We couldn&apos;t verify this cabin. Please try again.&quot; };
+  }
+
+  if (!cabin) {
+    return { error: &quot;This cabin is no longer available.&quot; };
+  }
+
+  if (
+    !Number.isSafeInteger(input.numGuests) ||
+    input.numGuests &lt; 1 ||
+    input.numGuests &gt; cabin.maxCapacity
+  ) {
+    return { error: &quot;Choose a guest count within this cabin&apos;s capacity.&quot; };
+  }
+
+  const nightlyRate = Math.max(cabin.regularPrice - cabin.discount, 0);
+
+  if (!Number.isFinite(nightlyRate) || nightlyRate &lt; 0) {
+    return { error: &quot;We couldn&apos;t calculate this cabin&apos;s price.&quot; };
+  }
+
+  const numNights =
+    (Date.parse(`${input.endDate}T00:00:00Z`) -
+      Date.parse(`${input.startDate}T00:00:00Z`)) /
+    86_400_000;
+  const totalPrice = nightlyRate * numNights;
+
+  if (
+    !Number.isSafeInteger(numNights) ||
+    !Number.isSafeInteger(totalPrice)
+  ) {
+    return { error: &quot;Choose valid reservation dates and try again.&quot; };
+  }
+
+  const { data: isAvailable, error: availabilityError } = await supabase.rpc(
+    &quot;is_booking_available&quot;,
+    {
+      p_cabin_id: input.cabinId,
+      p_start_date: input.startDate,
+      p_end_date: input.endDate,
+    },
+  );
+
+  if (availabilityError) {
+    return {
+      error:
+        &quot;We couldn&apos;t verify cabin availability. Please try again later.&quot;,
+    };
+  }
+
+  if (isAvailable !== true) {
+    return {
+      error: &quot;This cabin is already reserved for some of those dates.&quot;,
+    };
+  }
+
+  const { error: insertError } = await supabase.from(&quot;bookings&quot;).insert({
+    cabinId: input.cabinId,
+    guestId: guest.id,
+    cabinPrice: nightlyRate,
+    startDate: `${input.startDate}T00:00:00.000Z`,
+    endDate: `${input.endDate}T00:00:00.000Z`,
+    numGuests: input.numGuests,
+    numNights,
+    totalPrice,
+    status: &quot;unconfirmed&quot;,
+    isPaid: false,
+    observations: input.observations,
+  });
+
+  if (insertError) {
+    return { error: getReservationSaveError(insertError.code) };
+  }
+
+  updateTag(&quot;cabins&quot;);
+  updateTag(`cabin-${input.cabinId}`);
+  revalidatePath(`/cabins/${input.cabinId}`);
+  revalidatePath(&quot;/account/reservations&quot;);
+
+  return { message: &quot;Your reservation has been submitted.&quot; };
+}</file><file path="features/reservations/queries.ts">import &quot;server-only&quot;;
+
+import { getAccountGuest } from &quot;@/features/profile/queries&quot;;
+
+export async function getAccountReservations() {
+  const { guest, supabase } = await getAccountGuest();
+
+  if (!guest) {
+    return { guest, reservations: [] };
+  }
+
+  const { data: bookings, error: bookingsError } = await supabase
+    .from(&quot;bookings&quot;)
+    .select(
+      &quot;id, startDate, endDate, numGuests, numNights, totalPrice, status, cabinId&quot;,
+    )
+    .eq(&quot;guestId&quot;, guest.id)
+    .order(&quot;startDate&quot;, { ascending: false });
+
+  if (bookingsError) {
+    throw bookingsError;
+  }
+
+  const cabinIds = [...new Set(bookings.map((booking) =&gt; booking.cabinId))];
+  const { data: cabins, error: cabinsError } = cabinIds.length
+    ? await supabase
+        .from(&quot;cabins&quot;)
+        .select(&quot;id, cabin_number&quot;)
+        .in(&quot;id&quot;, cabinIds)
+    : { data: [], error: null };
+
+  if (cabinsError) {
+    throw cabinsError;
+  }
+
+  const cabinNumbers = new Map(
+    cabins.map((cabin) =&gt; [cabin.id, cabin.cabin_number]),
+  );
+
+  return {
+    guest,
+    reservations: bookings.map((booking) =&gt; ({
+      ...booking,
+      cabinNumber: cabinNumbers.get(booking.cabinId),
+    })),
+  };
+}</file><file path="features/reservations/schemas.ts">import { z } from &quot;zod&quot;;
+
+const DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+function isCalendarDate(value: string): boolean {
+  const match = DATE_PATTERN.exec(value);
+
+  if (!match) {
+    return false;
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+
+  if (year &lt; 1 || month &lt; 1 || month &gt; 12) {
+    return false;
+  }
+
+  const isLeapYear = year % 4 === 0 &amp;&amp; (year % 100 !== 0 || year % 400 === 0);
+  const daysInMonth = [
+    31,
+    isLeapYear ? 29 : 28,
+    31,
+    30,
+    31,
+    30,
+    31,
+    31,
+    30,
+    31,
+    30,
+    31,
+  ];
+
+  return day &gt;= 1 &amp;&amp; day &lt;= daysInMonth[month - 1];
+}
+
+const reservationDateSchema = z
+  .string()
+  .regex(DATE_PATTERN)
+  .refine(isCalendarDate);
+
+export const reservationSchema = z
+  .object({
+    cabinId: z.string().uuid(),
+    startDate: reservationDateSchema,
+    endDate: reservationDateSchema,
+    numGuests: z
+      .string()
+      .regex(/^[1-9]\d*$/)
+      .transform(Number)
+      .refine((numGuests) =&gt; Number.isSafeInteger(numGuests)),
+    observations: z.string().trim().max(500),
+  })
+  .refine(
+    ({ startDate }) =&gt; startDate &gt;= new Date().toISOString().slice(0, 10),
+    { path: [&quot;startDate&quot;] },
+  )
+  .refine(({ startDate, endDate }) =&gt; endDate &gt; startDate, {
+    path: [&quot;endDate&quot;],
+  });</file><file path="lib/supabase/client.ts">&quot;use client&quot;;
+
+import { createBrowserClient } from &quot;@supabase/ssr&quot;;
+
+import { getSupabaseConfig } from &quot;./config&quot;;
+
+export function createClient() {
+  const { supabaseUrl, supabasePublishableKey } = getSupabaseConfig();
+
+  return createBrowserClient(supabaseUrl, supabasePublishableKey);
+}</file><file path="lib/supabase/config.ts">export function getSupabaseConfig() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabasePublishableKey =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+  if (!supabaseUrl || !supabasePublishableKey) {
+    throw new Error(&quot;Supabase public environment variables are not configured&quot;);
+  }
+
+  return { supabaseUrl, supabasePublishableKey };
+}</file><file path="lib/supabase/data-client.ts">import { createClient } from &quot;@supabase/supabase-js&quot;;
+
+import { getSupabaseConfig } from &quot;./config&quot;;
+
+const { supabaseUrl, supabasePublishableKey } = getSupabaseConfig();
+
+export const supabase = createClient(supabaseUrl, supabasePublishableKey);</file><file path="lib/supabase/server.ts">import &quot;server-only&quot;;
+
+import { createServerClient, type CookieMethodsServer } from &quot;@supabase/ssr&quot;;
+import { cookies } from &quot;next/headers&quot;;
+
+import { getSupabaseConfig } from &quot;./config&quot;;
+
+async function getNextCookieMethods(): Promise&lt;CookieMethodsServer&gt; {
+  const cookieStore = await cookies();
+
+  return {
+    getAll() {
+      return cookieStore.getAll();
+    },
+    setAll(cookiesToSet) {
+      try {
+        for (const { name, value, options } of cookiesToSet) {
+          cookieStore.set(name, value, options);
+        }
+      } catch {
+        // proxy.ts refreshes sessions, so Server Component cookie writes are safe to ignore.
+      }
+    },
+  };
+}
+
+export async function createServerSupabaseClient(
+  cookieMethods?: CookieMethodsServer,
+) {
+  const { supabaseUrl, supabasePublishableKey } = getSupabaseConfig();
+
+  return createServerClient(supabaseUrl, supabasePublishableKey, {
+    cookies: cookieMethods ?? (await getNextCookieMethods()),
+  });
+}</file><file path="lib/action-state.ts">export type ActionState = {
+  error?: string;
+  message?: string;
+};</file><file path="lib/auth-errors.ts">import { isAuthApiError } from &quot;@supabase/supabase-js&quot;;
+
+export function isUnauthenticatedAuthError(error: unknown): boolean {
+  if (
+    error instanceof Error &amp;&amp;
+    (error.name === &quot;AuthSessionMissingError&quot; ||
+      error.name === &quot;AuthUserMissingError&quot;)
+  ) {
+    return true;
+  }
+
+  return isAuthApiError(error) &amp;&amp; (error.status === 401 || error.status === 403);
+}</file><file path="lib/site-origin.ts">function getHttpOrigin(value: string | null | undefined): string | null {
+  if (!value) {
     return null;
   }
 
-  return {
-    ...data,
-    cabinNumber: data.cabin_number,
-  };
-}
-</file>
+  try {
+    const url = new URL(value);
 
-<file path="app/lib/data.ts">
-import type { CabinFilter } from "../types/cabin";
-
-export type { CabinFilter } from "../types/cabin";
-
-export const capacityRanges: Record<
-  Exclude<CabinFilter, "all">,
-  readonly [number, number]
-> = {
-  "2-3": [2, 3],
-  "4-7": [4, 7],
-  "8-12": [8, 12],
-};
-
-export function isCapacityFilter(
-  value: unknown,
-): value is Exclude<CabinFilter, "all"> {
-  return (
-    typeof value === "string" &&
-    Object.prototype.hasOwnProperty.call(capacityRanges, value)
-  );
-}
-</file>
-
-<file path="app/styles/globals.css">
-@import "tailwindcss";
-
-@theme {
-  --color-primary-50: #e1e8ef;
-  --color-primary-100: #d4dee7;
-  --color-primary-200: #b7c7d7;
-  --color-primary-300: #99b0c7;
-  --color-primary-400: #7c99b6;
-  --color-primary-500: #5e82a6;
-  --color-primary-600: #4c6b8a;
-  --color-primary-700: #3c546c;
-  --color-primary-800: #2c3d4f;
-  --color-primary-900: #1b2631;
-  --color-primary-950: #141c24;
-
-  --color-accent-50: #faf5f0;
-  --color-accent-100: #f4ece1;
-  --color-accent-200: #e8d6bf;
-  --color-accent-300: #ddc2a2;
-  --color-accent-400: #d2af84;
-  --color-accent-500: #c69963;
-  --color-accent-600: #b78343;
-  --color-accent-700: #926835;
-  --color-accent-800: #6c4d28;
-  --color-accent-900: #4b351b;
-  --color-accent-950: #382814;
-}
-
-html {
-  scrollbar-gutter: stable;
-}
-
-body {
-  min-height: 100vh;
-}
-
-@layer components {
-  @keyframes rotate {
-    to {
-      transform: rotate(1turn);
+    if (
+      (url.protocol !== &quot;http:&quot; &amp;&amp; url.protocol !== &quot;https:&quot;) ||
+      !url.hostname ||
+      url.username ||
+      url.password
+    ) {
+      return null;
     }
+
+    return url.origin;
+  } catch {
+    return null;
   }
 }
 
-.rdp {
-  --rdp-cell-size: 32px !important;
-  --rdp-accent-color: var(--color-accent-500) !important;
-  --rdp-background-color: var(--color-accent-600) !important;
-  margin: 0 !important;
-}
-</file>
-
-<file path="app/types/cabin.ts">
-export type CabinFilter = "all" | "2-3" | "4-7" | "8-12";
-
-export type Cabin = {
-  id: string;
-  cabinNumber: string;
-  name: string;
-  maxCapacity: number;
-  regularPrice: number;
-  discount: number;
-  image: string;
-  description: string;
-};
-</file>
-
-<file path="app/providers.tsx">
-"use client";
-
-import { useState, type ReactNode } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
-function createQueryClient() {
-  return new QueryClient({
-    defaultOptions: {
-      queries: {
-        staleTime: 60_000,
-      },
-    },
-  });
-}
-
-export default function Providers({ children }: { children: ReactNode }) {
-  const [queryClient] = useState(createQueryClient);
-
+export function getTrustedSiteOrigin(requestOrigin?: string | null) {
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    getHttpOrigin(process.env.NEXT_PUBLIC_SITE_URL) ??
+    getHttpOrigin(requestOrigin)
+  );
+}</file><file path="supabase/drafts/20261023062200_guest_auth_ownership_draft.sql">-- DRAFT FOR REVIEW ONLY. This is a one-shot security migration for the
+-- confirmed guests/bookings schema. It intentionally does not change either
+-- table&apos;s ID generation.
+--
+-- No email-based backfill is performed. Auth-user deletion sets this nullable
+-- link to NULL so legacy guest and booking history is preserved but inaccessible
+-- to ordinary authenticated users until an explicit ownership process exists.
+--
+-- This migration revokes direct table and current-column grants from PUBLIC,
+-- anon, and authenticated. It cannot safely remove privileges inherited through
+-- other role memberships, change default privileges, or neutralize superuser,
+-- BYPASSRLS, and table-owner access. Review those separately for the target DB.
+
+BEGIN;
+
+ALTER TABLE public.guests
+  ADD COLUMN auth_user_id uuid,
+  ADD CONSTRAINT guests_auth_user_id_fkey
+    FOREIGN KEY (auth_user_id)
+    REFERENCES auth.users (id)
+    ON DELETE SET NULL,
+  ADD CONSTRAINT guests_auth_user_id_key UNIQUE (auth_user_id);
+
+ALTER TABLE public.guests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY;
+
+-- Drop every SELECT-capable policy so no permissive public policy can combine
+-- with the owner policies below. This also drops any ALL policies.
+DO $migration$
+DECLARE
+  existing_policy record;
+BEGIN
+  FOR existing_policy IN
+    SELECT tablename, policyname
+    FROM pg_policies
+    WHERE schemaname = &apos;public&apos;
+      AND tablename IN (&apos;guests&apos;, &apos;bookings&apos;)
+  LOOP
+    EXECUTE format(
+      &apos;DROP POLICY %I ON %I.%I&apos;,
+      existing_policy.policyname,
+      &apos;public&apos;,
+      existing_policy.tablename
+    );
+  END LOOP;
+END
+$migration$;
+
+-- Guests can read only the guest record explicitly linked to their auth user.
+CREATE POLICY guests_select_own
+  ON public.guests
+  FOR SELECT
+  TO authenticated
+  USING (auth_user_id = (SELECT auth.uid()));
+
+-- A booking is visible only when its guest record is linked to this auth user.
+CREATE POLICY bookings_select_own
+  ON public.bookings
+  FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1
+      FROM public.guests AS guest
+      WHERE guest.id = bookings.&quot;guestId&quot;
+        AND guest.auth_user_id = (SELECT auth.uid())
+    )
+  );
+
+-- The guests subquery is subject to guests_select_own; that policy does not
+-- query bookings, so this does not create recursive RLS evaluation.
+REVOKE ALL PRIVILEGES ON TABLE public.guests, public.bookings
+  FROM PUBLIC, anon, authenticated;
+
+-- Table-level REVOKE does not remove grants made on individual columns.
+DO $migration$
+DECLARE
+  target record;
+  column_list text;
+BEGIN
+  FOR target IN
+    SELECT table_name
+    FROM (VALUES (&apos;guests&apos;), (&apos;bookings&apos;)) AS tables(table_name)
+  LOOP
+    SELECT string_agg(format(&apos;%I&apos;, attribute.attname), &apos;, &apos; ORDER BY attribute.attnum)
+    INTO column_list
+    FROM pg_attribute AS attribute
+    JOIN pg_class AS relation
+      ON relation.oid = attribute.attrelid
+    JOIN pg_namespace AS schema
+      ON schema.oid = relation.relnamespace
+    WHERE schema.nspname = &apos;public&apos;
+      AND relation.relname = target.table_name
+      AND attribute.attnum &gt; 0
+      AND NOT attribute.attisdropped;
+
+    IF column_list IS NOT NULL THEN
+      EXECUTE format(
+        &apos;REVOKE ALL PRIVILEGES (%s) ON TABLE %I.%I FROM PUBLIC, anon, authenticated&apos;,
+        column_list,
+        &apos;public&apos;,
+        target.table_name
+      );
+    END IF;
+  END LOOP;
+END
+$migration$;
+
+-- SELECT is sufficient for the current account/reservation read paths. RLS
+-- constrains authenticated reads to the owner policies; no client write access
+-- or guest-claiming policy is introduced.
+GRANT SELECT ON TABLE public.guests, public.bookings TO authenticated;
+
+-- IDs have no defaults in the confirmed schema and remain unchanged here.
+-- Future inserts must supply valid IDs until ID generation is designed
+-- separately. This migration is intentionally one-shot: ADD COLUMN and named
+-- constraints/policies are not guarded with IF NOT EXISTS, so a successful
+-- application must not be replayed.
+
+COMMIT;</file><file path="supabase/drafts/20261023070000_guest_profile_writes_draft.sql">-- DRAFT FOR REVIEW ONLY. Do not apply until the profile creation and editing
+-- flow and its permissions have been reviewed.
+--
+-- Generate IDs for new guest rows while preserving all existing IDs.
+-- The table lock prevents concurrent writes between sequence initialization
+-- and installing the new default.
+
+BEGIN;
+
+LOCK TABLE public.guests IN ACCESS EXCLUSIVE MODE;
+
+CREATE SEQUENCE public.guests_id_seq AS bigint;
+ALTER SEQUENCE public.guests_id_seq OWNED BY public.guests.id;
+
+SELECT setval(
+  &apos;public.guests_id_seq&apos;,
+  GREATEST(COALESCE(MAX(id), 1), 1),
+  COALESCE(MAX(id), 0) &gt;= 1
+)
+FROM public.guests;
+
+ALTER TABLE public.guests
+  ALTER COLUMN id SET DEFAULT nextval(&apos;public.guests_id_seq&apos;::regclass);
+
+REVOKE ALL PRIVILEGES ON SEQUENCE public.guests_id_seq
+  FROM PUBLIC, anon, authenticated;
+GRANT USAGE ON SEQUENCE public.guests_id_seq TO authenticated;
+
+GRANT INSERT (&quot;fullName&quot;, email, nationality, &quot;nationalID&quot;, &quot;countryFlag&quot;, auth_user_id)
+  ON TABLE public.guests TO authenticated;
+GRANT UPDATE (&quot;fullName&quot;, nationality, &quot;nationalID&quot;, &quot;countryFlag&quot;)
+  ON TABLE public.guests TO authenticated;
+
+CREATE POLICY guests_insert_own
+  ON public.guests
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    auth_user_id = (SELECT auth.uid())
+    AND email = (SELECT auth.jwt() -&gt;&gt; &apos;email&apos;)
+  );
+
+CREATE POLICY guests_update_own
+  ON public.guests
+  FOR UPDATE
+  TO authenticated
+  USING (auth_user_id = (SELECT auth.uid()))
+  WITH CHECK (auth_user_id = (SELECT auth.uid()));
+
+COMMIT;</file><file path="supabase/drafts/20261023080000_reservation_creation_draft.sql">-- DRAFT FOR REVIEW ONLY. Do not apply until the reservation action, booking
+-- columns, status values, RLS policies, and grants have been reviewed against
+-- the target Supabase database.
+
+BEGIN;
+
+-- The security-definer helper returns only availability, so authenticated
+-- users can check conflicts without weakening the owner-only booking SELECT
+-- policy. It is a preflight check, not an atomic reservation operation.
+CREATE FUNCTION public.is_booking_available(
+  p_cabin_id uuid,
+  p_start_date date,
+  p_end_date date
+)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = &apos;&apos;
+AS $function$
+  SELECT
+    (SELECT auth.uid()) IS NOT NULL
+    AND p_start_date &lt; p_end_date
+    AND EXISTS (
+      SELECT 1
+      FROM public.cabins AS cabin
+      WHERE cabin.id = p_cabin_id
+    )
+    AND NOT EXISTS (
+      SELECT 1
+      FROM public.bookings AS booking
+      WHERE booking.&quot;cabinId&quot; = p_cabin_id
+        AND booking.&quot;startDate&quot; &lt; (p_end_date::timestamp AT TIME ZONE &apos;UTC&apos;)
+        AND booking.&quot;endDate&quot; &gt; (p_start_date::timestamp AT TIME ZONE &apos;UTC&apos;)
+        AND booking.status IN (&apos;unconfirmed&apos;, &apos;checked-in&apos;)
+    );
+$function$;
+
+REVOKE ALL PRIVILEGES ON FUNCTION public.is_booking_available(uuid, date, date)
+  FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.is_booking_available(uuid, date, date)
+  TO authenticated;
+
+GRANT INSERT (
+  &quot;guestId&quot;,
+  &quot;cabinId&quot;,
+  &quot;cabinPrice&quot;,
+  &quot;startDate&quot;,
+  &quot;endDate&quot;,
+  &quot;numGuests&quot;,
+  &quot;numNights&quot;,
+  &quot;totalPrice&quot;,
+  status,
+  &quot;isPaid&quot;,
+  observations
+)
+ON TABLE public.bookings TO authenticated;
+
+CREATE POLICY bookings_insert_own
+  ON public.bookings
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    EXISTS (
+      SELECT 1
+      FROM public.guests AS guest
+      WHERE guest.id = bookings.&quot;guestId&quot;
+        AND guest.auth_user_id = (SELECT auth.uid())
+    )
+    AND EXISTS (
+      SELECT 1
+      FROM public.cabins AS cabin
+      WHERE cabin.id = bookings.&quot;cabinId&quot;
+        AND bookings.&quot;numGuests&quot; BETWEEN 1 AND cabin.&quot;maxCapacity&quot;
+        AND bookings.&quot;startDate&quot; &gt;= (
+          timezone(&apos;UTC&apos;, now())::date::timestamp AT TIME ZONE &apos;UTC&apos;
+        )
+        AND bookings.&quot;endDate&quot; &gt; bookings.&quot;startDate&quot;
+        AND (bookings.&quot;endDate&quot; AT TIME ZONE &apos;UTC&apos;) =
+          (bookings.&quot;startDate&quot; AT TIME ZONE &apos;UTC&apos;)
+            + bookings.&quot;numNights&quot; * INTERVAL &apos;1 day&apos;
+        AND bookings.&quot;cabinPrice&quot; =
+          GREATEST(cabin.&quot;regularPrice&quot; - cabin.discount, 0)
+        AND bookings.&quot;totalPrice&quot; =
+          bookings.&quot;cabinPrice&quot; * bookings.&quot;numNights&quot;
+    )
+    AND status = &apos;unconfirmed&apos;
+    AND &quot;isPaid&quot; = false
+    AND &quot;hasBreakfast&quot; = false
+    AND &quot;extrasPrice&quot; = 0
+    AND char_length(COALESCE(observations, &apos;&apos;)) &lt;= 500
+    AND public.is_booking_available(
+      &quot;cabinId&quot;,
+      &quot;startDate&quot;,
+      &quot;endDate&quot;
+    )
+  );
+
+-- The availability RPC and insert are separate requests, so two simultaneous
+-- actions can still both pass the check. A reviewed exclusion constraint or a
+-- single transaction-backed reservation function is required for race-free
+-- overlap prevention; neither is added here because status semantics and
+-- existing overlapping data must be verified first.
+
+COMMIT;</file><file path="proxy.ts">import { type CookieMethodsServer, type CookieOptions } from &quot;@supabase/ssr&quot;;
+import { type NextRequest, NextResponse } from &quot;next/server&quot;;
+
+import { isUnauthenticatedAuthError } from &quot;./lib/auth-errors&quot;;
+import { createServerSupabaseClient } from &quot;./lib/supabase/server&quot;;
+
+export async function proxy(request: NextRequest) {
+  let response = NextResponse.next({ request });
+  const refreshedCookies = new Map&lt;
+    string,
+    { name: string; value: string; options: CookieOptions }
+  &gt;();
+  const supabaseHeaders = new Map&lt;string, string&gt;();
+  const cookieMethods: CookieMethodsServer = {
+    getAll() {
+      return request.cookies.getAll();
+    },
+    setAll(cookiesToSet, headers) {
+      for (const cookie of cookiesToSet) {
+        request.cookies.set(cookie.name, cookie.value);
+        refreshedCookies.set(cookie.name, cookie);
+      }
+
+      response = NextResponse.next({ request });
+
+      for (const { name, value, options } of refreshedCookies.values()) {
+        response.cookies.set(name, value, options);
+      }
+
+      for (const [name, value] of Object.entries(headers)) {
+        supabaseHeaders.set(name, value);
+      }
+
+      for (const [name, value] of supabaseHeaders) {
+        response.headers.set(name, value);
+      }
+    },
+  };
+
+  const supabase = await createServerSupabaseClient(cookieMethods);
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  const pathname = request.nextUrl.pathname;
+  const isAccountPath =
+    pathname === &quot;/account&quot; || pathname.startsWith(&quot;/account/&quot;);
+  const isUnauthenticated = error
+    ? isUnauthenticatedAuthError(error)
+    : !user;
+
+  if (isAccountPath &amp;&amp; !user &amp;&amp; isUnauthenticated) {
+    const next = `${pathname}${request.nextUrl.search}`;
+    const redirectResponse = NextResponse.redirect(
+      new URL(`/login?next=${encodeURIComponent(next)}`, request.url),
+      307,
+    );
+
+    for (const { name, value, options } of refreshedCookies.values()) {
+      redirectResponse.cookies.set(name, value, options);
+    }
+
+    for (const [name, value] of supabaseHeaders) {
+      redirectResponse.headers.set(name, value);
+    }
+
+    return redirectResponse;
+  }
+
+  return response;
+}
+
+export const config = {
+  matcher: [
+    &quot;/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|map|woff2?)$).*)&quot;,
+  ],
+};</file><file path="app/about/page.tsx">import type { Metadata } from &quot;next&quot;;
+import Image from &quot;next/image&quot;;
+import Link from &quot;next/link&quot;;
+
+import about1 from &quot;@/public/about-1.jpg&quot;;
+import about2 from &quot;@/public/about-2.jpg&quot;;
+
+export const metadata: Metadata = {
+  title: &quot;About&quot;,
+};
+
+export default function Page() {
+  return (
+    &lt;div className=&quot;grid gap-24 md:gap-32&quot;&gt;
+      &lt;section className=&quot;grid items-center gap-8 md:grid-cols-2 md:gap-16&quot;&gt;
+        &lt;div&gt;
+          &lt;h1 className=&quot;mb-6 text-4xl font-medium text-accent-400&quot;&gt;
+            Welcome to The Wild Oasis
+          &lt;/h1&gt;
+
+          &lt;div className=&quot;space-y-6 text-lg leading-8 text-primary-200&quot;&gt;
+            &lt;p&gt;
+              Where nature&amp;apos;s beauty and comfortable living blend
+              seamlessly. Hidden away in the heart of the Italian Dolomites,
+              this is your paradise away from home. But it&amp;apos;s not just about
+              the luxury cabins. It&amp;apos;s about the experience of reconnecting
+              with nature and enjoying simple pleasures with family.
+            &lt;/p&gt;
+
+            &lt;p&gt;
+              Our 8 luxury cabins provide a cozy base, but the real freedom and
+              peace you&amp;apos;ll find in the surrounding mountains. Wander
+              through lush forests, breathe in the fresh air, and watch the
+              stars twinkle above from the warmth of a campfire or your hot tub.
+            &lt;/p&gt;
+
+            &lt;p&gt;
+              This is where memorable moments are made, surrounded by
+              nature&amp;apos;s splendor. It&amp;apos;s a place to slow down, relax, and
+              feel the joy of being together in a beautiful setting.
+            &lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div className=&quot;relative h-112&quot;&gt;
+          &lt;Image
+            src={about1}
+            fill
+            priority
+            placeholder=&quot;blur&quot;
+            sizes=&quot;(max-width: 768px) 100vw, 50vw&quot;
+            alt=&quot;Family sitting around a fire pit in front of a cabin&quot;
+            className=&quot;object-cover&quot;
+          /&gt;
+        &lt;/div&gt;
+      &lt;/section&gt;
+
+      &lt;section className=&quot;grid items-center gap-8 md:grid-cols-2 md:gap-16&quot;&gt;
+        &lt;div className=&quot;relative order-2 h-112 md:order-1&quot;&gt;
+          &lt;Image
+            src={about2}
+            fill
+            placeholder=&quot;blur&quot;
+            sizes=&quot;(max-width: 768px) 100vw, 50vw&quot;
+            alt=&quot;Family that manages The Wild Oasis&quot;
+            className=&quot;object-cover&quot;
+          /&gt;
+        &lt;/div&gt;
+
+        &lt;div className=&quot;order-1 md:order-2&quot;&gt;
+          &lt;h2 className=&quot;mb-6 text-4xl font-medium text-accent-400&quot;&gt;
+            Managed by our family since 1962
+          &lt;/h2&gt;
+
+          &lt;div className=&quot;space-y-6 text-lg leading-8 text-primary-200&quot;&gt;
+            &lt;p&gt;
+              Since 1962, The Wild Oasis has been a cherished family-run
+              retreat. Started by our grandparents, this haven has been nurtured
+              with love and care, passing down through our family as a testament
+              to our dedication to creating a warm, welcoming environment.
+            &lt;/p&gt;
+
+            &lt;p&gt;
+              Over the years, we&amp;apos;ve maintained the essence of The Wild
+              Oasis, blending the timeless beauty of the mountains with the
+              personal touch only a family business can offer. Here, you&amp;apos;re
+              not just a guest; you&amp;apos;re part of our extended family. So join
+              us at The Wild Oasis soon, where tradition meets tranquility, and
+              every visit is like coming home.
+            &lt;/p&gt;
+
+            &lt;Link
+              href=&quot;/cabins&quot;
+              className=&quot;inline-block bg-accent-500 px-8 py-5 text-lg font-semibold text-primary-800 transition-all hover:bg-accent-600&quot;
+            &gt;
+              Explore our luxury cabins
+            &lt;/Link&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/section&gt;
+    &lt;/div&gt;
+  );
+}</file><file path="app/account/layout.tsx">import { Suspense, type ReactNode } from &quot;react&quot;;
+
+import SideNavigation from &quot;@/components/SideNavigation&quot;;
+import { getAccountGuest } from &quot;@/features/profile/queries&quot;;
+
+type AccountLayoutProps = {
+  children: ReactNode;
+};
+
+export default function AccountLayout({ children }: AccountLayoutProps) {
+  return (
+    &lt;Suspense
+      fallback={
+        &lt;p aria-busy=&quot;true&quot; className=&quot;text-primary-300&quot;&gt;
+          Loading your account...
+        &lt;/p&gt;
+      }
+    &gt;
+      &lt;AuthenticatedAccount&gt;{children}&lt;/AuthenticatedAccount&gt;
+    &lt;/Suspense&gt;
   );
 }
-</file>
 
-<file path=".gitignore">
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+async function AuthenticatedAccount({ children }: AccountLayoutProps) {
+  await getAccountGuest();
+
+  return (
+    &lt;div className=&quot;grid grid-cols-1 gap-8 md:grid-cols-[16rem_1fr] md:gap-12&quot;&gt;
+      &lt;SideNavigation /&gt;
+
+      &lt;div className=&quot;py-1&quot;&gt;{children}&lt;/div&gt;
+    &lt;/div&gt;
+  );
+}</file><file path="app/account/page.tsx">import type { Metadata } from &quot;next&quot;;
+import Link from &quot;next/link&quot;;
+import { Suspense } from &quot;react&quot;;
+
+import { getAccountGuest } from &quot;@/features/profile/queries&quot;;
+
+export const metadata: Metadata = {
+  title: &quot;Guest area&quot;,
+};
+
+export default function Page() {
+  return (
+    &lt;Suspense fallback={&lt;p aria-busy=&quot;true&quot;&gt;Loading your guest area...&lt;/p&gt;}&gt;
+      &lt;AccountPageContent /&gt;
+    &lt;/Suspense&gt;
+  );
+}
+
+async function AccountPageContent() {
+  const { guest } = await getAccountGuest();
+
+  if (!guest) {
+    return (
+      &lt;div&gt;
+        &lt;h1 className=&quot;mb-5 text-4xl font-medium text-accent-400&quot;&gt;
+          Guest area
+        &lt;/h1&gt;
+
+        &lt;p className=&quot;mb-6 text-lg text-primary-200&quot;&gt;
+          You do not have a guest profile yet. Existing guest records are not
+          linked automatically.
+        &lt;/p&gt;
+        &lt;Link
+          href=&quot;/account/profile&quot;
+          className=&quot;text-accent-500 underline underline-offset-4 transition-colors hover:text-accent-400&quot;
+        &gt;
+          Create your profile
+        &lt;/Link&gt;
+      &lt;/div&gt;
+    );
+  }
+
+  return (
+    &lt;div&gt;
+      &lt;h1 className=&quot;mb-5 text-4xl font-medium text-accent-400&quot;&gt;
+        Welcome, {guest.fullName}
+      &lt;/h1&gt;
+
+      &lt;p className=&quot;mb-8 text-lg text-primary-200&quot;&gt;
+        Your guest account is linked and ready to use.
+      &lt;/p&gt;
+
+      &lt;div className=&quot;flex flex-wrap gap-5&quot;&gt;
+        &lt;Link
+          href=&quot;/account/profile&quot;
+          className=&quot;text-accent-500 underline underline-offset-4 transition-colors hover:text-accent-400&quot;
+        &gt;
+          View your profile
+        &lt;/Link&gt;
+        &lt;Link
+          href=&quot;/account/reservations&quot;
+          className=&quot;text-accent-500 underline underline-offset-4 transition-colors hover:text-accent-400&quot;
+        &gt;
+          View your reservations
+        &lt;/Link&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}</file><file path="app/cabins/[cabinId]/not-found.tsx">import Link from &quot;next/link&quot;;
+
+export default function NotFound() {
+  return (
+    &lt;div className=&quot;flex min-h-[60vh] items-center justify-center&quot;&gt;
+      &lt;div className=&quot;max-w-lg text-center&quot;&gt;
+        &lt;h1 className=&quot;mb-4 text-3xl font-medium text-accent-400&quot;&gt;
+          Cabin not found
+        &lt;/h1&gt;
+
+        &lt;p className=&quot;mb-8 text-lg leading-8 text-primary-200&quot;&gt;
+          We couldn&amp;apos;t find the cabin you&amp;apos;re looking for. It may have
+          been removed or is no longer available.
+        &lt;/p&gt;
+
+        &lt;Link
+          href=&quot;/cabins&quot;
+          className=&quot;inline-flex items-center gap-2 bg-accent-500 px-6 py-3 font-semibold text-primary-900 transition-colors hover:bg-accent-600&quot;
+        &gt;
+          &lt;span aria-hidden=&quot;true&quot;&gt;←&lt;/span&gt;
+          Back to cabins
+        &lt;/Link&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}</file><file path=".gitignore"># See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
 /node_modules
@@ -1582,29 +2879,17 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts
-</file>
-
-<file path="AGENTS.md">
-<!-- BEGIN:nextjs-agent-rules -->
+next-env.d.ts</file><file path="AGENTS.md">&lt;!-- BEGIN:nextjs-agent-rules --&gt;
 
 # This is NOT the Next.js you know
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file&apos;s directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
-<!-- END:nextjs-agent-rules -->
-</file>
-
-<file path="CLAUDE.md">
-@AGENTS.md
-</file>
-
-<file path="eslint.config.mjs">
-import { defineConfig, globalIgnores } from "eslint/config";
-import nextVitals from "eslint-config-next/core-web-vitals";
-import nextTs from "eslint-config-next/typescript";
+&lt;!-- END:nextjs-agent-rules --&gt;</file><file path="CLAUDE.md">@AGENTS.md</file><file path="eslint.config.mjs">import { defineConfig, globalIgnores } from &quot;eslint/config&quot;;
+import nextVitals from &quot;eslint-config-next/core-web-vitals&quot;;
+import nextTs from &quot;eslint-config-next/typescript&quot;;
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -1612,28 +2897,20 @@ const eslintConfig = defineConfig([
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
+    &quot;.next/**&quot;,
+    &quot;out/**&quot;,
+    &quot;build/**&quot;,
+    &quot;next-env.d.ts&quot;,
   ]),
 ]);
 
-export default eslintConfig;
-</file>
-
-<file path="postcss.config.mjs">
-const config = {
+export default eslintConfig;</file><file path="postcss.config.mjs">const config = {
   plugins: {
-    "@tailwindcss/postcss": {},
+    &quot;@tailwindcss/postcss&quot;: {},
   },
 };
 
-export default config;
-</file>
-
-<file path="README.md">
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+export default config;</file><file path="README.md">This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
 
@@ -1666,348 +2943,467 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&amp;filter=next.js&amp;utm_source=create-next-app&amp;utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-</file>
-
-<file path="tsconfig.json">
-{
-  "compilerOptions": {
-    "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "react-jsx",
-    "incremental": true,
-    "plugins": [
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.</file><file path="tsconfig.json">{
+  &quot;compilerOptions&quot;: {
+    &quot;target&quot;: &quot;ES2017&quot;,
+    &quot;lib&quot;: [&quot;dom&quot;, &quot;dom.iterable&quot;, &quot;esnext&quot;],
+    &quot;allowJs&quot;: true,
+    &quot;skipLibCheck&quot;: true,
+    &quot;strict&quot;: true,
+    &quot;noEmit&quot;: true,
+    &quot;esModuleInterop&quot;: true,
+    &quot;module&quot;: &quot;esnext&quot;,
+    &quot;moduleResolution&quot;: &quot;bundler&quot;,
+    &quot;resolveJsonModule&quot;: true,
+    &quot;isolatedModules&quot;: true,
+    &quot;jsx&quot;: &quot;react-jsx&quot;,
+    &quot;incremental&quot;: true,
+    &quot;plugins&quot;: [
       {
-        "name": "next"
+        &quot;name&quot;: &quot;next&quot;
       }
     ],
-    "paths": {
-      "@/*": ["./*"]
+    &quot;paths&quot;: {
+      &quot;@/*&quot;: [&quot;./*&quot;]
     }
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    "**/*.mts"
+  &quot;include&quot;: [
+    &quot;next-env.d.ts&quot;,
+    &quot;**/*.ts&quot;,
+    &quot;**/*.tsx&quot;,
+    &quot;.next/types/**/*.ts&quot;,
+    &quot;.next/dev/types/**/*.ts&quot;,
+    &quot;**/*.mts&quot;
   ],
-  "exclude": ["node_modules"]
-}
-</file>
+  &quot;exclude&quot;: [&quot;node_modules&quot;]
+}</file><file path="app/account/profile/page.tsx">import type { Metadata } from &quot;next&quot;;
+import { Suspense } from &quot;react&quot;;
 
-<file path="app/cabins/page.tsx">
-import type { Metadata } from "next";
-
-import CabinBrowser from "../components/CabinBrowser";
-import { isCapacityFilter, type CabinFilter } from "../lib/data";
-import { getCabins } from "../lib/data-service";
+import ProfileForm from &quot;@/features/profile/components/ProfileForm&quot;;
+import { getAccountGuest } from &quot;@/features/profile/queries&quot;;
 
 export const metadata: Metadata = {
-  title: "Cabins",
+  title: &quot;Profile&quot;,
 };
 
-export default async function Page({ searchParams }: PageProps<"/cabins">) {
-  const { capacity } = await searchParams;
-  const initialFilter: CabinFilter = isCapacityFilter(capacity)
-    ? capacity
-    : "all";
-  // eslint-disable-next-line react-hooks/purity -- request-scoped server timing
-  const cabinsStartedAt = performance.now();
+export default function Page() {
+  return (
+    &lt;Suspense fallback={&lt;p aria-busy=&quot;true&quot;&gt;Loading your profile...&lt;/p&gt;}&gt;
+      &lt;ProfilePageContent /&gt;
+    &lt;/Suspense&gt;
+  );
+}
+
+async function ProfilePageContent() {
+  const { guest } = await getAccountGuest();
+
+  return (
+    &lt;div&gt;
+      &lt;h1 className=&quot;mb-3 text-4xl font-medium text-accent-400&quot;&gt;
+        Guest profile
+      &lt;/h1&gt;
+
+      {!guest ? (
+        &lt;&gt;
+          &lt;p className=&quot;mb-8 max-w-2xl text-lg leading-8 text-primary-200&quot;&gt;
+            Create a profile for your account. Existing guest records are not
+            linked automatically.
+          &lt;/p&gt;
+          &lt;ProfileForm /&gt;
+        &lt;/&gt;
+      ) : (
+        &lt;&gt;
+          &lt;p className=&quot;mb-8 max-w-2xl text-lg leading-8 text-primary-200&quot;&gt;
+            Review or update the details saved to your guest profile.
+          &lt;/p&gt;
+
+          &lt;ProfileForm
+            email={guest.email}
+            profile={{
+              fullName: guest.fullName,
+              nationality: guest.nationality,
+              nationalID: guest.nationalID,
+              countryFlag: guest.countryFlag,
+            }}
+          /&gt;
+        &lt;/&gt;
+      )}
+    &lt;/div&gt;
+  );
+}</file><file path="app/account/reservations/page.tsx">import type { Metadata } from &quot;next&quot;;
+import Link from &quot;next/link&quot;;
+import { Suspense } from &quot;react&quot;;
+
+import { getAccountReservations } from &quot;@/features/reservations/queries&quot;;
+
+export const metadata: Metadata = {
+  title: &quot;Reservations&quot;,
+};
+
+const dateFormatter = new Intl.DateTimeFormat(&quot;en-US&quot;, {
+  dateStyle: &quot;long&quot;,
+  timeZone: &quot;UTC&quot;,
+});
+
+function formatReservationDate(value: unknown) {
+  if (typeof value !== &quot;string&quot; || value.trim().length === 0) {
+    return &quot;Unknown date&quot;;
+  }
+
+  const date = new Date(value);
+
+  if (!Number.isFinite(date.getTime())) {
+    return &quot;Unknown date&quot;;
+  }
+
+  return dateFormatter.format(date);
+}
+
+export default function Page() {
+  return (
+    &lt;Suspense fallback={&lt;p aria-busy=&quot;true&quot;&gt;Loading your reservations...&lt;/p&gt;}&gt;
+      &lt;ReservationsPageContent /&gt;
+    &lt;/Suspense&gt;
+  );
+}
+
+async function ReservationsPageContent() {
+  const { guest, reservations } = await getAccountReservations();
+
+  return (
+    &lt;div&gt;
+      &lt;div className=&quot;mb-8&quot;&gt;
+        &lt;h1 className=&quot;mb-3 text-4xl font-medium text-accent-400&quot;&gt;
+          Your reservations
+        &lt;/h1&gt;
+
+        &lt;p className=&quot;text-lg text-primary-200&quot;&gt;
+          Here you can see all your reservations and manage your upcoming stays.
+        &lt;/p&gt;
+      &lt;/div&gt;
+
+      {!guest ? (
+        &lt;div className=&quot;border border-primary-800 bg-primary-950 px-8 py-10&quot;&gt;
+          &lt;p className=&quot;text-lg text-primary-200&quot;&gt;
+            Your sign-in is not linked to a guest profile, so reservations
+            cannot be shown. Please contact the property to link your account;
+            records are not linked automatically.
+          &lt;/p&gt;
+        &lt;/div&gt;
+      ) : reservations.length === 0 ? (
+        &lt;div className=&quot;border border-primary-800 bg-primary-950 px-8 py-10&quot;&gt;
+          &lt;p className=&quot;text-lg text-primary-200&quot;&gt;
+            You have no reservations yet. Check out our{&quot; &quot;}
+            &lt;Link
+              href=&quot;/cabins&quot;
+              className=&quot;text-accent-500 underline underline-offset-4 transition-colors hover:text-accent-400&quot;
+            &gt;
+              luxury cabins &amp;rarr;
+            &lt;/Link&gt;
+          &lt;/p&gt;
+        &lt;/div&gt;
+      ) : (
+        &lt;div className=&quot;space-y-6&quot;&gt;
+          {reservations.map((reservation) =&gt; (
+            &lt;article
+              key={reservation.id}
+              className=&quot;border border-primary-800 bg-primary-950&quot;
+            &gt;
+              &lt;div className=&quot;flex items-center justify-between border-b border-primary-800 px-6 py-5&quot;&gt;
+                &lt;div&gt;
+                  &lt;p className=&quot;mb-1 text-sm text-primary-400&quot;&gt;
+                    Reservation #{reservation.id}
+                  &lt;/p&gt;
+                  &lt;h2 className=&quot;text-2xl font-medium text-primary-100&quot;&gt;
+                    Cabin {reservation.cabinNumber ?? reservation.cabinId}
+                  &lt;/h2&gt;
+                &lt;/div&gt;
+                &lt;span className=&quot;border border-accent-700 px-3 py-1 text-sm text-accent-400&quot;&gt;
+                  {reservation.status}
+                &lt;/span&gt;
+              &lt;/div&gt;
+
+              &lt;div className=&quot;grid gap-6 px-6 py-6 sm:grid-cols-2 lg:grid-cols-4&quot;&gt;
+                &lt;div&gt;
+                  &lt;p className=&quot;mb-1 text-sm text-primary-400&quot;&gt;Check-in&lt;/p&gt;
+                  &lt;p className=&quot;text-primary-200&quot;&gt;
+                    {formatReservationDate(reservation.startDate)}
+                  &lt;/p&gt;
+                &lt;/div&gt;
+                &lt;div&gt;
+                  &lt;p className=&quot;mb-1 text-sm text-primary-400&quot;&gt;Check-out&lt;/p&gt;
+                  &lt;p className=&quot;text-primary-200&quot;&gt;
+                    {formatReservationDate(reservation.endDate)}
+                  &lt;/p&gt;
+                &lt;/div&gt;
+                &lt;div&gt;
+                  &lt;p className=&quot;mb-1 text-sm text-primary-400&quot;&gt;Guests&lt;/p&gt;
+                  &lt;p className=&quot;text-primary-200&quot;&gt;
+                    {reservation.numGuests}{&quot; &quot;}
+                    {reservation.numGuests === 1 ? &quot;guest&quot; : &quot;guests&quot;}
+                  &lt;/p&gt;
+                &lt;/div&gt;
+                &lt;div&gt;
+                  &lt;p className=&quot;mb-1 text-sm text-primary-400&quot;&gt;Total&lt;/p&gt;
+                  &lt;p className=&quot;text-primary-200&quot;&gt;${reservation.totalPrice}&lt;/p&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+
+              &lt;div className=&quot;border-t border-primary-800 px-6 py-4&quot;&gt;
+                &lt;p className=&quot;text-sm text-primary-400&quot;&gt;
+                  {reservation.numNights}{&quot; &quot;}
+                  {reservation.numNights === 1 ? &quot;night&quot; : &quot;nights&quot;}
+                &lt;/p&gt;
+              &lt;/div&gt;
+            &lt;/article&gt;
+          ))}
+        &lt;/div&gt;
+      )}
+    &lt;/div&gt;
+  );
+}</file><file path="app/cabins/[cabinId]/error.tsx">&quot;use client&quot;;
+
+export default function Error({ retry }: { retry: () =&gt; void }) {
+  return (
+    &lt;div className=&quot;flex min-h-[60vh] items-center justify-center&quot;&gt;
+      &lt;div className=&quot;max-w-lg text-center&quot;&gt;
+        &lt;h2 className=&quot;mb-4 text-3xl font-medium text-accent-400&quot;&gt;
+          Couldn&amp;apos;t load this cabin
+        &lt;/h2&gt;
+
+        &lt;p className=&quot;mb-8 text-lg leading-8 text-primary-200&quot;&gt;
+          Something went wrong while loading this cabin. Please try again.
+        &lt;/p&gt;
+
+        &lt;button
+          type=&quot;button&quot;
+          onClick={retry}
+          className=&quot;bg-accent-500 px-6 py-3 font-semibold text-primary-900 transition-colors hover:bg-accent-600&quot;
+        &gt;
+          Try again
+        &lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}</file><file path="app/cabins/[cabinId]/page.tsx">import { notFound } from &quot;next/navigation&quot;;
+import type { Metadata } from &quot;next&quot;;
+
+import CabinDetail from &quot;@/features/cabins/components/CabinDetail&quot;;
+import { getCabin, getCabins } from &quot;@/features/cabins/queries&quot;;
+import type { Cabin } from &quot;@/features/cabins/types&quot;;
+
+type PageProps = {
+  params: Promise&lt;{
+    cabinId: string;
+  }&gt;;
+};
+
+const CABIN_ID_PATTERN = /^[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}$/i;
+
+function isValidCabinId(cabinId: string): boolean {
+  return CABIN_ID_PATTERN.test(cabinId);
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise&lt;Metadata&gt; {
+  const { cabinId } = await params;
+
+  if (!isValidCabinId(cabinId)) {
+    return {
+      title: &quot;Cabin Not Found&quot;,
+      description: &quot;The cabin you are looking for does not exist.&quot;,
+    };
+  }
+
+  const cabin = await getCabin(cabinId);
+
+  if (!cabin) {
+    return {
+      title: &quot;Cabin Not Found&quot;,
+      description: &quot;The cabin you are looking for does not exist.&quot;,
+    };
+  }
+
+  return {
+    title: `Cabin ${cabin.name}`,
+    description: cabin.description,
+  };
+}
+
+export async function generateStaticParams() {
   const cabins = await getCabins();
 
-  console.info(
-    "[cabin-perf]",
-    JSON.stringify({
-      event: "getCabins-call-complete",
-      filter: "all",
-      // eslint-disable-next-line react-hooks/purity -- request-scoped server timing
-      durationMs: Number((performance.now() - cabinsStartedAt).toFixed(1)),
-    }),
-  );
-
-  return (
-    <div>
-      <h1 className="mb-5 text-4xl font-medium text-accent-400">
-        Our Luxury Cabins
-      </h1>
-
-      <p className="mb-10 max-w-4xl text-lg text-primary-200">
-        Cozy yet luxurious cabins, located right in the heart of the Italian
-        Dolomites. Imagine waking up to beautiful mountain views, spending your
-        days exploring the dark forests around, or just relaxing in your private
-        hot tub under the stars. Enjoy nature&apos;s beauty in your own little
-        home away from home. The perfect spot for a peaceful, calm vacation.
-        Welcome to paradise.
-      </p>
-
-      <CabinBrowser cabins={cabins} initialFilter={initialFilter} />
-    </div>
-  );
-}
-</file>
-
-<file path="app/components/CabinBrowser.tsx">
-"use client";
-
-import { useEffect, useRef, useState } from "react";
-
-import CabinList from "./CabinList";
-import {
-  capacityRanges,
-  isCapacityFilter,
-  type CabinFilter,
-} from "@/app/lib/data";
-import type { Cabin } from "../types/cabin";
-
-const filters: Array<{ value: CabinFilter; label: string }> = [
-  { value: "all", label: "All cabins" },
-  { value: "2-3", label: "2—3 guests" },
-  { value: "4-7", label: "4—7 guests" },
-  { value: "8-12", label: "8—12 guests" },
-];
-
-function getSelectionMarkName(filter: CabinFilter) {
-  return `cabin-filter-selected:${filter}`;
+  return cabins.map((cabin: Cabin) =&gt; ({
+    cabinId: String(cabin.id),
+  }));
 }
 
-export default function CabinBrowser({
-  cabins,
-  initialFilter,
-}: {
-  cabins: Cabin[];
-  initialFilter: CabinFilter;
-}) {
-  const [filter, setFilter] = useState(initialFilter);
-  const previousFilter = useRef(initialFilter);
+export default async function Page({ params }: PageProps) {
+  const { cabinId } = await params;
 
-  useEffect(() => {
-    function syncFilterFromUrl() {
-      const capacityParams = new URLSearchParams(
-        window.location.search,
-      ).getAll("capacity");
-
-      setFilter(
-        capacityParams.length === 1 && isCapacityFilter(capacityParams[0])
-          ? capacityParams[0]
-          : "all",
-      );
-    }
-
-    window.addEventListener("popstate", syncFilterFromUrl);
-
-    return () => window.removeEventListener("popstate", syncFilterFromUrl);
-  }, []);
-
-  useEffect(() => {
-    if (previousFilter.current === filter) {
-      return;
-    }
-
-    previousFilter.current = filter;
-
-    const startMark = getSelectionMarkName(filter);
-    const [startEntry] = performance.getEntriesByName(startMark, "mark");
-
-    if (!startEntry) {
-      return;
-    }
-
-    let secondFrame = 0;
-    const firstFrame = requestAnimationFrame(() => {
-      secondFrame = requestAnimationFrame(() => {
-        if (!performance.getEntriesByName(startMark, "mark").length) {
-          return;
-        }
-
-        const endMark = `cabin-filter-results-visible:${filter}`;
-        performance.mark(endMark);
-        performance.measure(
-          `cabin-filter-results-visible:${filter}`,
-          startMark,
-          endMark,
-        );
-
-        console.info(
-          "[cabin-perf]",
-          JSON.stringify({
-            event: "results-visible",
-            filter,
-            durationMs: Number(
-              (performance.now() - startEntry.startTime).toFixed(1),
-            ),
-          }),
-        );
-
-        performance.clearMarks(startMark);
-        performance.clearMarks(endMark);
-      });
-    });
-
-    return () => {
-      cancelAnimationFrame(firstFrame);
-      cancelAnimationFrame(secondFrame);
-    };
-  }, [filter]);
-
-  let visibleCabins = cabins;
-
-  if (filter !== "all") {
-    const [minCapacity, maxCapacity] = capacityRanges[filter];
-    visibleCabins = cabins.filter(
-      (cabin) =>
-        cabin.maxCapacity >= minCapacity && cabin.maxCapacity <= maxCapacity,
-    );
+  if (!isValidCabinId(cabinId)) {
+    notFound();
   }
 
-  function handleFilterChange(nextFilter: CabinFilter) {
-    for (const item of filters) {
-      performance.clearMarks(getSelectionMarkName(item.value));
-    }
-    performance.mark(getSelectionMarkName(nextFilter));
+  const cabin = await getCabin(cabinId);
 
-    const params = new URLSearchParams(window.location.search);
-
-    if (nextFilter === "all") {
-      params.delete("capacity");
-    } else {
-      params.set("capacity", nextFilter);
-    }
-
-    const queryString = params.toString();
-    const url = new URL(window.location.href);
-    url.search = queryString;
-    window.history.pushState(null, "", url);
-    setFilter(nextFilter);
+  if (!cabin) {
+    notFound();
   }
 
+  return &lt;CabinDetail cabin={cabin} /&gt;;
+}</file><file path="app/cabins/error.tsx">&quot;use client&quot;;
+
+export default function Error({ retry }: { retry: () =&gt; void }) {
   return (
-    <>
-      <div className="mb-4 flex justify-end">
-        <div className="flex border border-primary-800">
-          {filters.map((item) => {
-            const isActive = filter === item.value;
+    &lt;div className=&quot;flex min-h-[50vh] items-center justify-center&quot;&gt;
+      &lt;div className=&quot;max-w-lg text-center&quot;&gt;
+        &lt;h2 className=&quot;mb-4 text-3xl font-medium text-accent-400&quot;&gt;
+          Something went wrong
+        &lt;/h2&gt;
 
-            return (
-              <button
-                key={item.value}
-                type="button"
-                aria-pressed={isActive}
-                onClick={() => handleFilterChange(item.value)}
-                className={`px-5 py-2 text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-accent-500 text-primary-900"
-                    : "hover:bg-primary-900"
-                }`}
-              >
-                {item.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+        &lt;p className=&quot;mb-8 text-lg leading-8 text-primary-200&quot;&gt;
+          We couldn&amp;apos;t load the cabins right now. Please try again.
+        &lt;/p&gt;
 
-      <CabinList cabins={visibleCabins} />
-    </>
+        &lt;button
+          type=&quot;button&quot;
+          onClick={retry}
+          className=&quot;bg-accent-500 px-6 py-3 font-semibold text-primary-900 transition-colors hover:bg-accent-600&quot;
+        &gt;
+          Try again
+        &lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
   );
+}</file><file path="app/cabins/loading.tsx">import Spinner from &quot;@/components/Spinner&quot;;
+
+export default function Loading() {
+  return (
+    &lt;div className=&quot;flex min-h-100 items-center justify-center&quot;&gt;
+      &lt;div className=&quot;flex items-center gap-3 text-sm text-primary-400&quot;&gt;
+        &lt;Spinner decorative /&gt;
+        &lt;span&gt;Loading cabins...&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}</file><file path="app/styles/globals.css">@import &quot;tailwindcss&quot;;
+
+@theme {
+  --color-primary-50: #e1e8ef;
+  --color-primary-100: #d4dee7;
+  --color-primary-200: #b7c7d7;
+  --color-primary-300: #99b0c7;
+  --color-primary-400: #7c99b6;
+  --color-primary-500: #5e82a6;
+  --color-primary-600: #4c6b8a;
+  --color-primary-700: #3c546c;
+  --color-primary-800: #2c3d4f;
+  --color-primary-900: #1b2631;
+  --color-primary-950: #141c24;
+
+  --color-accent-50: #faf5f0;
+  --color-accent-100: #f4ece1;
+  --color-accent-200: #e8d6bf;
+  --color-accent-300: #ddc2a2;
+  --color-accent-400: #d2af84;
+  --color-accent-500: #c69963;
+  --color-accent-600: #b78343;
+  --color-accent-700: #926835;
+  --color-accent-800: #6c4d28;
+  --color-accent-900: #4b351b;
+  --color-accent-950: #382814;
 }
-</file>
 
-<file path="app/layout.tsx">
-import type { Metadata } from "next";
-import { Josefin_Sans } from "next/font/google";
+html {
+  color-scheme: dark;
+  scrollbar-gutter: stable;
+}
 
-import "@/app/styles/globals.css";
-import { Header } from "./components";
+:focus-visible {
+  outline: 2px solid var(--color-accent-400);
+  outline-offset: 2px;
+}
+
+body {
+  min-height: 100vh;
+}</file><file path="app/layout.tsx">import type { Metadata } from &quot;next&quot;;
+import { Josefin_Sans } from &quot;next/font/google&quot;;
+
+import &quot;@/app/styles/globals.css&quot;;
+import Header from &quot;@/components/Header&quot;;
 
 const josefin = Josefin_Sans({
-  subsets: ["latin"],
-  display: "swap",
+  subsets: [&quot;latin&quot;],
+  display: &quot;swap&quot;,
 });
 
 export const metadata: Metadata = {
   title: {
-    default: "Welcome | The Wild Oasis",
-    template: "%s | The Wild Oasis",
+    default: &quot;Welcome | The Wild Oasis&quot;,
+    template: &quot;%s | The Wild Oasis&quot;,
   },
   description:
-    "Luxurious cabin hotel, located in the heart of the Italian Dolomites, surrounded by beautiful mountains and dark forests",
+    &quot;Luxurious cabin hotel, located in the heart of the Italian Dolomites, surrounded by beautiful mountains and dark forests&quot;,
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: LayoutProps&lt;&quot;/&quot;&gt;) {
   return (
-    <html lang="en">
-      <body
+    &lt;html lang=&quot;en&quot;&gt;
+      &lt;body
         className={`${josefin.className} flex min-h-screen flex-col overflow-x-hidden bg-primary-950 text-primary-100 antialiased`}
-      >
-        <Header />
+      &gt;
+        &lt;Header /&gt;
 
-        <main className="flex-1 px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
-          <div className="mx-auto w-full max-w-7xl">{children}</div>
-        </main>
-      </body>
-    </html>
+        &lt;main className=&quot;flex-1 px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12&quot;&gt;
+          &lt;div className=&quot;mx-auto w-full max-w-7xl&quot;&gt;{children}&lt;/div&gt;
+        &lt;/main&gt;
+      &lt;/body&gt;
+    &lt;/html&gt;
   );
-}
-</file>
+}</file><file path="app/page.tsx">import Image from &quot;next/image&quot;;
+import Link from &quot;next/link&quot;;
 
-<file path="app/page.tsx">
-import Image from "next/image";
-import Link from "next/link";
-
-import bg from "@/public/bg.png";
+import bg from &quot;@/public/bg.png&quot;;
 
 export default function Page() {
   return (
-    <div className="fixed inset-0 z-0 isolate overflow-hidden bg-primary-950">
-      <Image
+    &lt;div className=&quot;fixed inset-0 z-0 isolate overflow-hidden bg-primary-950&quot;&gt;
+      &lt;Image
         src={bg}
         fill
         priority
-        placeholder="blur"
+        placeholder=&quot;blur&quot;
         quality={80}
-        sizes="100vw"
-        className="object-cover object-center"
-        alt="Mountains and forests with two cabins"
-      />
+        sizes=&quot;100vw&quot;
+        className=&quot;object-cover object-center&quot;
+        alt=&quot;Mountains and forests with two cabins&quot;
+      /&gt;
 
-      <div className="absolute inset-0 bg-gradient-to-b from-primary-950/65 via-primary-950/15 to-primary-950/55" />
+      &lt;div className=&quot;absolute inset-0 bg-gradient-to-b from-primary-950/65 via-primary-950/15 to-primary-950/55&quot; /&gt;
 
-      <div className="relative z-10 flex h-full -translate-y-[14vh] items-center justify-center px-4 text-center sm:px-6">
-        <div className="w-full max-w-5xl">
-          <h1 className="mx-auto mb-5 max-w-[12ch] text-4xl font-medium leading-[1.08] tracking-tight text-primary-50 drop-shadow-lg sm:mb-6 sm:max-w-none sm:text-5xl md:text-6xl lg:text-7xl">
+      &lt;div className=&quot;relative z-10 flex h-full -translate-y-[14vh] items-center justify-center px-4 text-center sm:px-6&quot;&gt;
+        &lt;div className=&quot;w-full max-w-5xl&quot;&gt;
+          &lt;h1 className=&quot;mx-auto mb-5 max-w-[12ch] text-4xl font-medium leading-[1.08] tracking-tight text-primary-50 drop-shadow-lg sm:mb-6 sm:max-w-none sm:text-5xl md:text-6xl lg:text-7xl&quot;&gt;
             Welcome to paradise.
-          </h1>
+          &lt;/h1&gt;
 
-          <div className="flex justify-center">
-            <Link
-              href="/cabins"
-              className="inline-flex min-h-12 items-center justify-center bg-accent-500 px-7 py-3 text-base font-semibold text-primary-800 transition-colors hover:bg-accent-600 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent-300 sm:px-8 sm:py-4 sm:text-lg"
-            >
+          &lt;div className=&quot;flex justify-center&quot;&gt;
+            &lt;Link
+              href=&quot;/cabins&quot;
+              className=&quot;inline-flex min-h-12 items-center justify-center bg-accent-500 px-7 py-3 text-base font-semibold text-primary-800 transition-colors hover:bg-accent-600 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent-300 sm:px-8 sm:py-4 sm:text-lg&quot;
+            &gt;
               Explore luxury cabins
-            </Link>
-          </div>
-        </div>
-      </div>
-    </div>
+            &lt;/Link&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
   );
-}
-</file>
-
-<file path="next.config.ts">
-import type { NextConfig } from "next";
+}</file><file path="next.config.ts">import type { NextConfig } from &quot;next&quot;;
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
@@ -2016,39 +3412,67 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
-</file>
+export default nextConfig;</file><file path="app/cabins/page.tsx">import type { Metadata } from &quot;next&quot;;
+import { Suspense } from &quot;react&quot;;
 
-<file path="package.json">
-{
-  "name": "first-next-app",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
+import CabinBrowser from &quot;@/features/cabins/components/CabinBrowser&quot;;
+import { getCabins } from &quot;@/features/cabins/queries&quot;;
+import Loading from &quot;./loading&quot;;
+
+export const metadata: Metadata = {
+  title: &quot;Cabins&quot;,
+};
+
+export default async function Page() {
+  const cabins = await getCabins();
+
+  return (
+    &lt;div&gt;
+      &lt;h1 className=&quot;mb-5 text-4xl font-medium text-accent-400&quot;&gt;
+        Our Luxury Cabins
+      &lt;/h1&gt;
+
+      &lt;p className=&quot;mb-10 max-w-4xl text-lg text-primary-200&quot;&gt;
+        Cozy yet luxurious cabins, located right in the heart of the Italian
+        Dolomites. Imagine waking up to beautiful mountain views, spending your
+        days exploring the dark forests around, or just relaxing in your private
+        hot tub under the stars. Enjoy nature&amp;apos;s beauty in your own little
+        home away from home. The perfect spot for a peaceful, calm vacation.
+        Welcome to paradise.
+      &lt;/p&gt;
+
+      &lt;Suspense fallback={&lt;Loading /&gt;}&gt;
+        &lt;CabinBrowser cabins={cabins} /&gt;
+      &lt;/Suspense&gt;
+    &lt;/div&gt;
+  );
+}</file><file path="package.json">{
+  &quot;name&quot;: &quot;first-next-app&quot;,
+  &quot;version&quot;: &quot;0.1.0&quot;,
+  &quot;private&quot;: true,
+  &quot;scripts&quot;: {
+    &quot;dev&quot;: &quot;next dev&quot;,
+    &quot;build&quot;: &quot;next build&quot;,
+    &quot;start&quot;: &quot;next start&quot;,
+    &quot;lint&quot;: &quot;eslint&quot;
   },
-  "dependencies": {
-    "@heroicons/react": "^2.2.0",
-    "@supabase/supabase-js": "^2.115.0",
-    "@tanstack/react-query": "^5.103.2",
-    "next": "16.3.3",
-    "react": "19.2.8",
-    "react-dom": "19.2.8"
+  &quot;dependencies&quot;: {
+    &quot;@heroicons/react&quot;: &quot;^2.2.0&quot;,
+    &quot;@supabase/ssr&quot;: &quot;^0.12.7&quot;,
+    &quot;@supabase/supabase-js&quot;: &quot;^2.115.0&quot;,
+    &quot;next&quot;: &quot;16.3.3&quot;,
+    &quot;react&quot;: &quot;19.2.8&quot;,
+    &quot;react-dom&quot;: &quot;19.2.8&quot;,
+    &quot;zod&quot;: &quot;^4.6.7&quot;
   },
-  "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.3.3",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+  &quot;devDependencies&quot;: {
+    &quot;@tailwindcss/postcss&quot;: &quot;^4&quot;,
+    &quot;@types/node&quot;: &quot;^20&quot;,
+    &quot;@types/react&quot;: &quot;^19&quot;,
+    &quot;@types/react-dom&quot;: &quot;^19&quot;,
+    &quot;eslint&quot;: &quot;^9&quot;,
+    &quot;eslint-config-next&quot;: &quot;16.3.3&quot;,
+    &quot;tailwindcss&quot;: &quot;^4&quot;,
+    &quot;typescript&quot;: &quot;^5&quot;
   }
-}
-</file>
-
-</files>
+}</file></files></repomix>
