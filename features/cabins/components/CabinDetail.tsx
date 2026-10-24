@@ -15,9 +15,12 @@ export default function CabinDetail({ cabin }: { cabin: Cabin }) {
       <div className="mb-5">
         <Link
           href="/cabins"
-          className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-primary-300 transition-colors hover:text-accent-300"
+          className="ui-button ui-button--secondary group min-h-11 px-4 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-300"
         >
-          <ArrowLeftIcon aria-hidden="true" className="size-4" />
+          <ArrowLeftIcon
+            aria-hidden="true"
+            className="size-4 transition-transform group-hover:-translate-x-0.5"
+          />
           Back to cabins
         </Link>
       </div>
