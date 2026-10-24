@@ -20,7 +20,7 @@ export default function AuthForm({ mode, next }: AuthFormProps) {
   const isSignup = mode === "signup";
 
   return (
-    <div className="w-full max-w-md border border-primary-800 bg-primary-950 p-6 sm:p-8">
+    <div className="w-full max-w-md border border-primary-700/80 bg-primary-900/80 p-5 shadow-xl backdrop-blur sm:p-8">
       <form action={formAction} className="space-y-5">
         <input type="hidden" name="next" value={next} />
 
@@ -32,7 +32,7 @@ export default function AuthForm({ mode, next }: AuthFormProps) {
             autoComplete="email"
             maxLength={254}
             required
-            className="w-full border border-primary-700 bg-primary-900 px-4 py-3 text-primary-100 outline-none transition-colors focus:border-accent-500"
+            className="min-h-12 w-full border border-primary-700 bg-primary-950/70 px-4 py-3 text-primary-100 outline-none transition-colors placeholder:text-primary-500 focus:border-accent-500 focus-visible:ring-2 focus-visible:ring-accent-400/60"
           />
         </label>
 
@@ -45,7 +45,7 @@ export default function AuthForm({ mode, next }: AuthFormProps) {
             minLength={isSignup ? 8 : undefined}
             maxLength={128}
             required
-            className="w-full border border-primary-700 bg-primary-900 px-4 py-3 text-primary-100 outline-none transition-colors focus:border-accent-500"
+            className="min-h-12 w-full border border-primary-700 bg-primary-950/70 px-4 py-3 text-primary-100 outline-none transition-colors placeholder:text-primary-500 focus:border-accent-500 focus-visible:ring-2 focus-visible:ring-accent-400/60"
           />
         </label>
 
@@ -64,7 +64,7 @@ export default function AuthForm({ mode, next }: AuthFormProps) {
           type="submit"
           disabled={pending}
           aria-busy={pending}
-          className="w-full bg-accent-500 px-5 py-3 font-semibold text-primary-900 transition-colors hover:bg-accent-600 disabled:cursor-wait disabled:opacity-60"
+          className="min-h-12 w-full bg-accent-500 px-5 py-3 font-semibold text-primary-900 transition-colors hover:bg-accent-600 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent-300 disabled:cursor-wait disabled:opacity-60"
         >
           {pending ? (
             <LoadingIndicator
