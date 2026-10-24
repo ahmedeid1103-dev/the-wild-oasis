@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+// Auth forms share a single validation layer before they reach Supabase.
+// We normalize email casing here so the same account can be used consistently across login/signup.
+
 const emailSchema = z
   .string()
   .trim()

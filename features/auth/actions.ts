@@ -9,6 +9,9 @@ import { getTrustedSiteOrigin } from "@/lib/site-origin";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { signInSchema, signUpSchema } from "./schemas";
 
+// These server actions are the single entry point for the auth forms.
+// Each one validates the submitted form, calls Supabase, and redirects only after success.
+
 function parseCredentials(formData: FormData, mode: "login" | "signup") {
   const credentials = {
     email: formData.get("email"),
@@ -45,6 +48,8 @@ function parseCredentials(formData: FormData, mode: "login" | "signup") {
 }
 
 async function getCallbackUrl(next: string) {
+  // Signup email confirmations must redirect back into the app after the user verifies their address.
+  // The browser origin is checked against the trusted site list before constructing this callback URL.
   const origin = (await headers()).get("origin");
   const siteOrigin = getTrustedSiteOrigin(origin);
 
@@ -62,6 +67,8 @@ export async function signInAction(
   _previousState: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  // Login is intentionally strict: invalid credentials never trigger a redirect,
+  // and any auth failure is surfaced as a user-friendly message.
   const parsedCredentials = parseCredentials(formData, "login");
 
   if (!parsedCredentials.success) {
@@ -90,6 +97,8 @@ export async function signUpAction(
   _previousState: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  // Signup reaches Supabase only after validation and a trusted redirect target is prepared.
+  // This ensures the email confirmation flow can safely send the user back to the app.
   const parsedCredentials = parseCredentials(formData, "signup");
 
   if (!parsedCredentials.success) {
@@ -132,6 +141,7 @@ export async function signOutAction(
   _previousState: ActionState,
   _formData: FormData,
 ): Promise<ActionState> {
+  // Local sign-out clears the browser session cookie without touching other Supabase scopes.
   void _previousState;
   void _formData;
 

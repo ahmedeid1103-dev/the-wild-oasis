@@ -1,5 +1,7 @@
 const LOCAL_ORIGIN = "https://wild-oasis.local";
 
+// We never trust a raw `next` URL from a form submission.
+// This helper only allows same-site, relative paths so we do not open redirect vulnerabilities.
 export function safeLocalRedirect(value: unknown, fallback = "/account") {
   if (
     typeof value !== "string" ||
