@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Suspense } from "react";
 
 import { getAccountReservations } from "@/features/reservations/queries";
 
@@ -25,14 +24,10 @@ function formatReservationDate(value: unknown) {
   }
 
   return dateFormatter.format(date);
-}
+};
 
 export default function Page() {
-  return (
-    <Suspense fallback={<p aria-busy="true">Loading your reservations...</p>}>
-      <ReservationsPageContent />
-    </Suspense>
-  );
+  return <ReservationsPageContent />;
 }
 
 async function ReservationsPageContent() {

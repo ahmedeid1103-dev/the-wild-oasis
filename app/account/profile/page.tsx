@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 
 import ProfileForm from "@/features/profile/components/ProfileForm";
 import { getAccountGuest } from "@/features/profile/queries";
@@ -9,11 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return (
-    <Suspense fallback={<p aria-busy="true">Loading your profile...</p>}>
-      <ProfilePageContent />
-    </Suspense>
-  );
+  return <ProfilePageContent />;
 }
 
 async function ProfilePageContent() {
@@ -31,15 +26,17 @@ async function ProfilePageContent() {
             Create a profile for your account. Existing guest records are not
             linked automatically.
           </p>
-          <ProfileForm />
+          <ProfileForm key="new-profile" />
         </>
       ) : (
         <>
           <p className="mb-8 max-w-2xl text-lg leading-8 text-primary-200">
-            Review or update the details saved to your guest profile.
+            Your guest details are saved below. You can update them whenever
+            needed.
           </p>
 
           <ProfileForm
+            key={guest.id}
             email={guest.email}
             profile={{
               fullName: guest.fullName,

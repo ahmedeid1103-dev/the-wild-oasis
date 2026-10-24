@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState } from "react";
 
+import LoadingIndicator from "@/components/LoadingIndicator";
 import { signInAction, signUpAction } from "@/features/auth/actions";
 import type { ActionState } from "@/lib/action-state";
 
@@ -62,13 +63,18 @@ export default function AuthForm({ mode, next }: AuthFormProps) {
         <button
           type="submit"
           disabled={pending}
+          aria-busy={pending}
           className="w-full bg-accent-500 px-5 py-3 font-semibold text-primary-900 transition-colors hover:bg-accent-600 disabled:cursor-wait disabled:opacity-60"
         >
-          {pending
-            ? "Please wait..."
-            : isSignup
-              ? "Create account"
-              : "Sign in"}
+          {pending ? (
+            <LoadingIndicator
+              label={isSignup ? "Creating account..." : "Signing in..."}
+            />
+          ) : isSignup ? (
+            "Create account"
+          ) : (
+            "Sign in"
+          )}
         </button>
       </form>
 

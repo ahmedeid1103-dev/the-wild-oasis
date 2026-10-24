@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import LoadingIndicator from "@/components/LoadingIndicator";
 import AuthPageContent from "@/features/auth/components/AuthPageContent";
 
 export const metadata: Metadata = {
@@ -20,9 +21,10 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
       </p>
       <Suspense
         fallback={
-          <p aria-busy="true" className="text-primary-300">
-            Loading sign-in form...
-          </p>
+          <LoadingIndicator
+            label="Loading sign-in form..."
+            className="text-primary-300"
+          />
         }
       >
         <AuthPageContent mode="login" searchParams={searchParams} />

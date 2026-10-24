@@ -1,7 +1,9 @@
+import LoadingIndicator from "@/components/LoadingIndicator";
+
 export default function Loading() {
   return (
-    <p aria-busy="true" className="text-primary-300">
-      Loading your account...
-    </p>
+    <div className="flex min-h-100 items-center justify-center text-primary-300">
+      <LoadingIndicator label="Loading your account..." />
+    </div>
   );
 }

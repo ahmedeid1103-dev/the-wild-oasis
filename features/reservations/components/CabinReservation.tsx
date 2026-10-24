@@ -3,6 +3,7 @@
 import { useActionState, useMemo, useState } from "react";
 import Link from "next/link";
 
+import LoadingIndicator from "@/components/LoadingIndicator";
 import { createReservationAction } from "@/features/reservations/actions";
 import type { ActionState } from "@/lib/action-state";
 import type { Cabin } from "@/features/cabins/types";
@@ -179,13 +180,16 @@ export default function CabinReservation({ cabin }: { cabin: Cabin }) {
         <button
           type="submit"
           disabled={pending || Boolean(state.message)}
+          aria-busy={pending}
           className="w-full bg-accent-500 px-4 py-2.5 text-sm font-semibold text-primary-900 transition-colors hover:bg-accent-600 disabled:cursor-wait disabled:opacity-60"
         >
-          {pending
-            ? "Submitting..."
-            : state.message
-              ? "Reservation submitted"
-              : "Reserve cabin"}
+          {pending ? (
+            <LoadingIndicator label="Submitting..." />
+          ) : state.message ? (
+            "Reservation submitted"
+          ) : (
+            "Reserve cabin"
+          )}
         </button>
 
         {state.error ? (
