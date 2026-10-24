@@ -65,20 +65,25 @@ export default function CabinReservation({ cabin }: { cabin: Cabin }) {
           .slice(0, 10)
       : today;
 
-  return (
-    <aside className="ui-card p-5">
-      <p className="text-sm font-medium text-primary-400">Price per night</p>
+  const formattedNightlyPrice = discountedPrice.toLocaleString("en-US");
+  const formattedTotalPrice = totalPrice.toLocaleString("en-US");
 
+  return (
+    <aside className="ui-card h-fit border-accent-700/60 bg-gradient-to-b from-primary-900 to-primary-950 p-5 sm:p-6 lg:sticky lg:top-6">
+      <p className="ui-eyebrow">Plan your stay</p>
       <div className="mt-2 flex items-baseline gap-2">
-        <span className="text-3xl font-semibold text-primary-50">
-          ${discountedPrice}
+        <span className="text-3xl font-medium text-primary-50">
+          ${formattedNightlyPrice}
         </span>
         <span className="text-sm text-primary-400">/ night</span>
       </div>
 
       {cabin.discount > 0 && (
         <p className="mt-2 text-sm text-primary-400">
-          Regular price: <span className="line-through">${cabin.regularPrice}</span>
+          Regular price:{" "}
+          <span className="line-through">
+            ${cabin.regularPrice.toLocaleString("en-US")}
+          </span>
         </p>
       )}
 
@@ -170,10 +175,19 @@ export default function CabinReservation({ cabin }: { cabin: Cabin }) {
           />
         </label>
 
-        <div className="ui-notice text-sm">
-          <div className="flex items-center justify-between gap-2">
-            <span>{nights} nights</span>
-            <span>${totalPrice}</span>
+        <div className="border-t border-primary-700 pt-4 text-sm">
+          <div className="flex items-center justify-between gap-2 text-primary-300">
+            <span>
+              ${formattedNightlyPrice} × {nights}{" "}
+              {nights === 1 ? "night" : "nights"}
+            </span>
+            <span>${formattedTotalPrice}</span>
+          </div>
+          <div className="mt-3 flex items-center justify-between gap-2 border-t border-primary-800 pt-3">
+            <span className="font-semibold text-primary-100">Total</span>
+            <span className="text-lg font-semibold text-primary-50">
+              ${formattedTotalPrice}
+            </span>
           </div>
         </div>
 
