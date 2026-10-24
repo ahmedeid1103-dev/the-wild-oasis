@@ -36,7 +36,7 @@ async function ReservationsPageContent() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="mb-3 text-4xl font-medium text-accent-400">
+        <h1 className="ui-page-title mb-3">
           Your reservations
         </h1>
 
@@ -46,7 +46,7 @@ async function ReservationsPageContent() {
       </div>
 
       {!guest ? (
-        <div className="border border-primary-800 bg-primary-950 px-8 py-10">
+        <div className="ui-card ui-card--raised px-8 py-10">
           <p className="text-lg text-primary-200">
             Your sign-in is not linked to a guest profile, so reservations
             cannot be shown. Please contact the property to link your account;
@@ -54,12 +54,12 @@ async function ReservationsPageContent() {
           </p>
         </div>
       ) : reservations.length === 0 ? (
-        <div className="border border-primary-800 bg-primary-950 px-8 py-10">
+        <div className="ui-card ui-card--raised px-8 py-10">
           <p className="text-lg text-primary-200">
             You have no reservations yet. Check out our{" "}
             <Link
               href="/cabins"
-              className="text-accent-500 underline underline-offset-4 transition-colors hover:text-accent-400"
+              className="ui-link"
             >
               luxury cabins &rarr;
             </Link>
@@ -70,7 +70,7 @@ async function ReservationsPageContent() {
           {reservations.map((reservation) => (
             <article
               key={reservation.id}
-              className="border border-primary-800 bg-primary-950"
+              className="ui-card ui-card--raised shadow-none"
             >
               <div className="flex items-center justify-between border-b border-primary-800 px-6 py-5">
                 <div>

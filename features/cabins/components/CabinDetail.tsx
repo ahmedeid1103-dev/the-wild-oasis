@@ -11,13 +11,13 @@ export default function CabinDetail({ cabin }: { cabin: Cabin }) {
   return (
     <div className="mx-auto w-full max-w-6xl">
       <div className="mb-6 flex items-center justify-between gap-4">
-        <h1 className="text-4xl font-medium text-accent-400">
+        <h1 className="ui-page-title">
           Cabin #{cabin.cabinNumber}
         </h1>
 
         <Link
           href="/cabins"
-          className="inline-flex items-center gap-2 border border-primary-800 bg-primary-900 px-4 py-2 text-sm font-medium text-primary-100 transition-colors hover:border-accent-500 hover:bg-accent-500 hover:text-primary-900"
+          className="ui-button ui-button--secondary text-sm"
         >
           <span aria-hidden="true">←</span>
           Back to cabins

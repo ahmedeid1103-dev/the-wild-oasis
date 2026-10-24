@@ -121,36 +121,49 @@ export default function CabinBrowser({
   }
 
   return (
-    <>
-      <div className="mb-4 flex justify-end">
-        <div
-          role="group"
-          aria-label="Filter cabins by capacity"
-          className="grid grid-cols-2 border border-primary-800 sm:flex"
-        >
-          {filters.map((item) => {
-            const isActive = filter === item.value;
+    <section aria-label="Browse cabins">
+      <div className="mb-6 border-y border-primary-800 py-5">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex items-baseline gap-3">
+            <p className="font-medium text-primary-100">
+              {visibleCabins.length}{" "}
+              {visibleCabins.length === 1 ? "cabin" : "cabins"}
+            </p>
+            <span aria-hidden="true" className="text-primary-600">
+              /
+            </span>
+            <p className="text-sm text-primary-400">Choose your mountain stay</p>
+          </div>
 
-            return (
-              <button
-                key={item.value}
-                type="button"
-                aria-pressed={isActive}
-                onClick={() => handleFilterChange(item.value)}
-                className={`px-5 py-2 text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-accent-500 text-primary-900"
-                    : "hover:bg-primary-900"
-                }`}
-              >
-                {item.label}
-              </button>
-            );
-          })}
+          <div
+            role="group"
+            aria-label="Filter cabins by capacity"
+            className="flex flex-wrap gap-2"
+          >
+            {filters.map((item) => {
+              const isActive = filter === item.value;
+
+              return (
+                <button
+                  key={item.value}
+                  type="button"
+                  aria-pressed={isActive}
+                  onClick={() => handleFilterChange(item.value)}
+                  className={`ui-button min-h-10 px-4 py-2 text-xs sm:text-sm ${
+                    isActive
+                      ? "ui-button--primary"
+                      : "ui-button--secondary"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
       <CabinList cabins={visibleCabins} />
-    </>
+    </section>
   );
 }

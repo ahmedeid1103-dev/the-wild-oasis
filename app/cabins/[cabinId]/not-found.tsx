@@ -4,7 +4,7 @@ export default function NotFound() {
   return (
     <div className="flex min-h-[60vh] items-center justify-center">
       <div className="max-w-lg text-center">
-        <h1 className="mb-4 text-3xl font-medium text-accent-400">
+        <h1 className="ui-page-title mb-4">
           Cabin not found
         </h1>
 
@@ -15,7 +15,7 @@ export default function NotFound() {
 
         <Link
           href="/cabins"
-          className="inline-flex items-center gap-2 bg-accent-500 px-6 py-3 font-semibold text-primary-900 transition-colors hover:bg-accent-600"
+          className="ui-button ui-button--primary"
         >
           <span aria-hidden="true">←</span>
           Back to cabins

@@ -20,24 +20,24 @@ export default function AuthForm({ mode, next }: AuthFormProps) {
   const isSignup = mode === "signup";
 
   return (
-    <div className="w-full max-w-md border border-primary-700/80 bg-primary-900/80 p-5 shadow-xl backdrop-blur sm:p-8">
+    <div className="ui-card w-full max-w-md p-5 backdrop-blur sm:p-8">
       <form action={formAction} className="space-y-5">
         <input type="hidden" name="next" value={next} />
 
-        <label className="block text-sm font-medium text-primary-300">
-          <span className="mb-2 block">Email address</span>
+        <label className="ui-field">
+          <span className="ui-field__label">Email address</span>
           <input
             name="email"
             type="email"
             autoComplete="email"
             maxLength={254}
             required
-            className="min-h-12 w-full border border-primary-700 bg-primary-950/70 px-4 py-3 text-primary-100 outline-none transition-colors placeholder:text-primary-500 focus:border-accent-500 focus-visible:ring-2 focus-visible:ring-accent-400/60"
+            className="ui-input"
           />
         </label>
 
-        <label className="block text-sm font-medium text-primary-300">
-          <span className="mb-2 block">Password</span>
+        <label className="ui-field">
+          <span className="ui-field__label">Password</span>
           <input
             name="password"
             type="password"
@@ -45,17 +45,17 @@ export default function AuthForm({ mode, next }: AuthFormProps) {
             minLength={isSignup ? 8 : undefined}
             maxLength={128}
             required
-            className="min-h-12 w-full border border-primary-700 bg-primary-950/70 px-4 py-3 text-primary-100 outline-none transition-colors placeholder:text-primary-500 focus:border-accent-500 focus-visible:ring-2 focus-visible:ring-accent-400/60"
+            className="ui-input"
           />
         </label>
 
         {state.error && (
-          <p role="alert" className="text-sm text-red-300">
+          <p role="alert" className="ui-notice ui-notice--error text-sm">
             {state.error}
           </p>
         )}
         {state.message && (
-          <p role="status" className="text-sm text-accent-300">
+          <p role="status" className="ui-notice ui-notice--success text-sm">
             {state.message}
           </p>
         )}
@@ -64,7 +64,7 @@ export default function AuthForm({ mode, next }: AuthFormProps) {
           type="submit"
           disabled={pending}
           aria-busy={pending}
-          className="min-h-12 w-full bg-accent-500 px-5 py-3 font-semibold text-primary-900 transition-colors hover:bg-accent-600 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent-300 disabled:cursor-wait disabled:opacity-60"
+          className="ui-button ui-button--primary w-full"
         >
           {pending ? (
             <LoadingIndicator
@@ -82,7 +82,7 @@ export default function AuthForm({ mode, next }: AuthFormProps) {
         {isSignup ? "Already have an account?" : "New to The Wild Oasis?"}{" "}
         <Link
           href={`${isSignup ? "/login" : "/signup"}?next=${encodeURIComponent(next)}`}
-          className="text-accent-400 underline underline-offset-4 hover:text-accent-300"
+          className="ui-link"
         >
           {isSignup ? "Sign in" : "Create an account"}
         </Link>

@@ -8,7 +8,7 @@ type CabinListProps = {
 export default function CabinList({ cabins }: CabinListProps) {
   if (cabins.length === 0) {
     return (
-      <div className="border border-primary-800 p-8 text-center">
+      <div className="ui-card px-8 py-10 text-center">
         <h2 className="mb-2 text-lg font-medium text-primary-100">
           No cabins available
         </h2>
@@ -21,7 +21,7 @@ export default function CabinList({ cabins }: CabinListProps) {
   }
 
   return (
-    <div className="grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:gap-12 xl:gap-14">
+    <div className="grid items-stretch gap-5 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3">
       {cabins.map((cabin) => (
         <CabinCard cabin={cabin} key={cabin.id} />
       ))}

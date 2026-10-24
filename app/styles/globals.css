@@ -1,6 +1,20 @@
 @import "tailwindcss";
 
 @theme {
+  --color-canvas: #141c24;
+  --color-surface: #1b2631;
+  --color-surface-raised: #2c3d4f;
+  --color-border: #2c3d4f;
+  --color-content: #e1e8ef;
+  --color-content-muted: #b7c7d7;
+  --color-content-subtle: #7c99b6;
+  --color-action: #c69963;
+  --color-action-hover: #d2af84;
+  --color-danger: #fca5a5;
+  --radius-panel: 0px;
+  --radius-control: 0px;
+  --shadow-panel: 0 24px 48px rgb(0 0 0 / 20%);
+
   --color-primary-50: #e1e8ef;
   --color-primary-100: #d4dee7;
   --color-primary-200: #b7c7d7;
@@ -31,6 +45,10 @@ html {
   scrollbar-gutter: stable;
 }
 
+* {
+  box-sizing: border-box;
+}
+
 :focus-visible {
   outline: 2px solid var(--color-accent-400);
   outline-offset: 2px;
@@ -38,4 +56,159 @@ html {
 
 body {
   min-height: 100vh;
+  background-color: var(--color-canvas);
+  color: var(--color-content);
+}
+
+@layer components {
+  .ui-page-title {
+    color: var(--color-action-hover);
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 500;
+    line-height: 1.1;
+  }
+
+  .ui-eyebrow {
+    color: var(--color-action-hover);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .ui-card {
+    border: 1px solid var(--color-border);
+    background-color: var(--color-surface);
+    box-shadow: var(--shadow-panel);
+  }
+
+  .ui-card--raised {
+    background-color: var(--color-canvas);
+    box-shadow: none;
+  }
+
+  .ui-field {
+    display: block;
+    color: var(--color-content-muted);
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .ui-field__label {
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  .ui-input {
+    display: block;
+    min-height: 3rem;
+    width: 100%;
+    border: 1px solid var(--color-primary-700);
+    border-radius: var(--radius-control);
+    background-color: var(--color-canvas);
+    padding: 0.75rem 1rem;
+    color: var(--color-content);
+    outline: none;
+    transition:
+      border-color 150ms ease,
+      background-color 150ms ease;
+  }
+
+  .ui-input::placeholder {
+    color: var(--color-content-subtle);
+  }
+
+  .ui-input:focus-visible {
+    border-color: var(--color-action);
+  }
+
+  .ui-button {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-control);
+    padding: 0.75rem 1.25rem;
+    font-weight: 600;
+    line-height: 1.25;
+    text-align: center;
+    text-decoration: none;
+    transition:
+      color 150ms ease,
+      background-color 150ms ease,
+      border-color 150ms ease;
+  }
+
+  .ui-button:disabled {
+    cursor: wait;
+    opacity: 0.6;
+  }
+
+  .ui-button--primary {
+    background-color: var(--color-action);
+    color: var(--color-primary-950);
+  }
+
+  .ui-button--primary:hover:not(:disabled) {
+    background-color: var(--color-action-hover);
+  }
+
+  .ui-button--secondary {
+    border-color: var(--color-primary-700);
+    color: var(--color-content);
+  }
+
+  .ui-button--secondary:hover:not(:disabled) {
+    border-color: var(--color-action);
+    background-color: var(--color-surface);
+  }
+
+  .ui-button--outline {
+    border-color: var(--color-action);
+    color: var(--color-action-hover);
+  }
+
+  .ui-button--outline:hover:not(:disabled) {
+    background-color: var(--color-action);
+    color: var(--color-primary-950);
+  }
+
+  .ui-button--ghost {
+    color: var(--color-content-muted);
+  }
+
+  .ui-button--ghost:hover:not(:disabled) {
+    background-color: var(--color-surface);
+    color: var(--color-content);
+  }
+
+  .ui-link {
+    color: var(--color-action-hover);
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+    transition: color 150ms ease;
+  }
+
+  .ui-link:hover {
+    color: var(--color-action);
+  }
+
+  .ui-notice {
+    border: 1px solid var(--color-border);
+    background-color: var(--color-canvas);
+    padding: 1rem;
+    color: var(--color-content-muted);
+  }
+
+  .ui-notice--error {
+    border-color: rgb(248 113 113 / 40%);
+    color: var(--color-danger);
+  }
+
+  .ui-notice--success {
+    border-color: rgb(198 153 99 / 45%);
+    color: var(--color-action-hover);
+  }
 }

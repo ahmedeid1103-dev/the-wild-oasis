@@ -11,91 +11,97 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <div className="grid gap-24 md:gap-32">
-      <section className="grid items-center gap-8 md:grid-cols-2 md:gap-16">
-        <div>
-          <h1 className="mb-6 text-4xl font-medium text-accent-400">
-            Welcome to The Wild Oasis
+    <div className="mx-auto grid max-w-6xl gap-16 sm:gap-24">
+      <section className="grid items-center gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-14">
+        <div className="py-2">
+          <p className="ui-eyebrow mb-4">A family place in the mountains</p>
+          <h1 className="ui-page-title max-w-lg text-4xl text-primary-50 sm:text-5xl lg:text-6xl">
+            A slower stay, a lifetime in the making.
           </h1>
-
-          <div className="space-y-6 text-lg leading-8 text-primary-200">
-            <p>
-              Where nature&apos;s beauty and comfortable living blend
-              seamlessly. Hidden away in the heart of the Italian Dolomites,
-              this is your paradise away from home. But it&apos;s not just about
-              the luxury cabins. It&apos;s about the experience of reconnecting
-              with nature and enjoying simple pleasures with family.
-            </p>
-
-            <p>
-              Our 8 luxury cabins provide a cozy base, but the real freedom and
-              peace you&apos;ll find in the surrounding mountains. Wander
-              through lush forests, breathe in the fresh air, and watch the
-              stars twinkle above from the warmth of a campfire or your hot tub.
-            </p>
-
-            <p>
-              This is where memorable moments are made, surrounded by
-              nature&apos;s splendor. It&apos;s a place to slow down, relax, and
-              feel the joy of being together in a beautiful setting.
-            </p>
+          <p className="mt-6 max-w-xl text-base leading-7 text-primary-300 sm:text-lg sm:leading-8">
+            In the heart of the Italian Dolomites, we made a place to step away
+            from the rush and find your way back to the simple things: fresh
+            mountain air, long evenings, and time together.
+          </p>
+          <Link
+            href="/cabins"
+            className="ui-button ui-button--primary mt-8"
+          >
+            Find your cabin
+          </Link>
+          <div className="mt-10 flex gap-8 border-t border-primary-800 pt-5">
+            <div>
+              <p className="text-2xl font-medium text-accent-300">1962</p>
+              <p className="mt-1 text-xs uppercase tracking-[0.14em] text-primary-400">
+                Family-run since
+              </p>
+            </div>
+            <div className="border-l border-primary-800 pl-8">
+              <p className="text-2xl font-medium text-accent-300">8</p>
+              <p className="mt-1 text-xs uppercase tracking-[0.14em] text-primary-400">
+                Private cabins
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="relative h-112">
+        <figure className="relative min-h-80 overflow-hidden border border-primary-800 sm:min-h-[30rem]">
           <Image
             src={about1}
             fill
             priority
             placeholder="blur"
-            sizes="(max-width: 768px) 100vw, 50vw"
-            alt="Family sitting around a fire pit in front of a cabin"
+            sizes="(max-width: 1024px) 100vw, 55vw"
+            alt="Family gathered around a fire pit in front of a cabin"
             className="object-cover"
           />
-        </div>
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-gradient-to-t from-primary-950/70 via-transparent to-transparent"
+          />
+          <figcaption className="absolute bottom-5 left-5 border-l-2 border-accent-400 pl-4 text-sm text-primary-50">
+            Your own place in the Dolomites
+          </figcaption>
+        </figure>
       </section>
 
-      <section className="grid items-center gap-8 md:grid-cols-2 md:gap-16">
-        <div className="relative order-2 h-112 md:order-1">
+      <section className="grid overflow-hidden border border-primary-800 bg-primary-900/50 lg:grid-cols-[1fr_1fr]">
+        <div className="relative min-h-72 sm:min-h-96 lg:min-h-[34rem]">
           <Image
             src={about2}
             fill
             placeholder="blur"
-            sizes="(max-width: 768px) 100vw, 50vw"
-            alt="Family that manages The Wild Oasis"
+            sizes="(max-width: 1024px) 100vw, 50vw"
+            alt="The family behind The Wild Oasis"
             className="object-cover"
           />
         </div>
 
-        <div className="order-1 md:order-2">
-          <h2 className="mb-6 text-4xl font-medium text-accent-400">
-            Managed by our family since 1962
+        <div className="flex flex-col justify-center p-6 sm:p-10 lg:p-14">
+          <p className="ui-eyebrow mb-4">Our story</p>
+          <h2 className="ui-page-title max-w-lg text-3xl text-primary-50 sm:text-4xl">
+            Rooted in family. Made for getting away.
           </h2>
-
-          <div className="space-y-6 text-lg leading-8 text-primary-200">
+          <div className="mt-6 space-y-5 text-base leading-7 text-primary-300">
             <p>
-              Since 1962, The Wild Oasis has been a cherished family-run
-              retreat. Started by our grandparents, this haven has been nurtured
-              with love and care, passing down through our family as a testament
-              to our dedication to creating a warm, welcoming environment.
+              The Wild Oasis began with our grandparents and a simple idea: a
+              stay should feel less like checking in and more like coming home.
+              Since 1962, our family has cared for this little corner of the
+              mountains and the people who find their way here.
             </p>
-
             <p>
-              Over the years, we&apos;ve maintained the essence of The Wild
-              Oasis, blending the timeless beauty of the mountains with the
-              personal touch only a family business can offer. Here, you&apos;re
-              not just a guest; you&apos;re part of our extended family. So join
-              us at The Wild Oasis soon, where tradition meets tranquility, and
-              every visit is like coming home.
+              Today, our eight cabins offer a comfortable base for the best
+              parts of being outdoors. Wander the forests, share stories around
+              the fire, and let the mountain evenings take their time.
             </p>
-
-            <Link
-              href="/cabins"
-              className="inline-block bg-accent-500 px-8 py-5 text-lg font-semibold text-primary-800 transition-all hover:bg-accent-600"
-            >
-              Explore our luxury cabins
-            </Link>
           </div>
+          <Link
+            href="/cabins"
+            className="ui-link mt-7 inline-flex w-fit items-center gap-2 font-semibold"
+          >
+            Explore the cabins
+            <span aria-hidden="true">→</span>
+          </Link>
         </div>
       </section>
     </div>

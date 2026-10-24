@@ -4,7 +4,7 @@ export default function Error({ retry }: { retry: () => void }) {
   return (
     <div className="flex min-h-[60vh] items-center justify-center">
       <div className="max-w-lg text-center">
-        <h2 className="mb-4 text-3xl font-medium text-accent-400">
+        <h2 className="ui-page-title mb-4">
           Couldn&apos;t load this cabin
         </h2>
 
@@ -15,7 +15,7 @@ export default function Error({ retry }: { retry: () => void }) {
         <button
           type="button"
           onClick={retry}
-          className="bg-accent-500 px-6 py-3 font-semibold text-primary-900 transition-colors hover:bg-accent-600"
+          className="ui-button ui-button--primary"
         >
           Try again
         </button>

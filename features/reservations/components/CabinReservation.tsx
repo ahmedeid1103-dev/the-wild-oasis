@@ -66,7 +66,7 @@ export default function CabinReservation({ cabin }: { cabin: Cabin }) {
       : today;
 
   return (
-    <aside className="border border-primary-800 bg-primary-900/50 p-5">
+    <aside className="ui-card p-5">
       <p className="text-sm font-medium text-primary-400">Price per night</p>
 
       <div className="mt-2 flex items-baseline gap-2">
@@ -86,8 +86,8 @@ export default function CabinReservation({ cabin }: { cabin: Cabin }) {
         <input type="hidden" name="cabinId" value={cabin.id} />
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <label className="block text-sm text-primary-200">
-            <span className="mb-1 block text-xs uppercase tracking-wide text-primary-400">
+          <label className="ui-field">
+            <span className="ui-field__label text-xs uppercase tracking-wide text-primary-400">
               Check-in
             </span>
             <input
@@ -102,12 +102,12 @@ export default function CabinReservation({ cabin }: { cabin: Cabin }) {
                   startDate: event.target.value,
                 }))
               }
-              className="w-full border border-primary-700 bg-primary-900 px-3 py-2 text-primary-100 outline-none transition-colors focus:border-accent-500"
+              className="ui-input"
             />
           </label>
 
-          <label className="block text-sm text-primary-200">
-            <span className="mb-1 block text-xs uppercase tracking-wide text-primary-400">
+          <label className="ui-field">
+            <span className="ui-field__label text-xs uppercase tracking-wide text-primary-400">
               Check-out
             </span>
             <input
@@ -122,13 +122,13 @@ export default function CabinReservation({ cabin }: { cabin: Cabin }) {
                   endDate: event.target.value,
                 }))
               }
-              className="w-full border border-primary-700 bg-primary-900 px-3 py-2 text-primary-100 outline-none transition-colors focus:border-accent-500"
+              className="ui-input"
             />
           </label>
         </div>
 
-        <label className="block text-sm text-primary-200">
-          <span className="mb-1 block text-xs uppercase tracking-wide text-primary-400">
+        <label className="ui-field">
+          <span className="ui-field__label text-xs uppercase tracking-wide text-primary-400">
             Guests
           </span>
           <select
@@ -140,7 +140,7 @@ export default function CabinReservation({ cabin }: { cabin: Cabin }) {
                 guests: Number(event.target.value),
               }))
             }
-            className="w-full border border-primary-700 bg-primary-900 px-3 py-2 text-primary-100 outline-none transition-colors focus:border-accent-500"
+            className="ui-input"
           >
             {guestOptions.map((option) => (
               <option key={option} value={option}>
@@ -150,8 +150,8 @@ export default function CabinReservation({ cabin }: { cabin: Cabin }) {
           </select>
         </label>
 
-        <label className="block text-sm text-primary-200">
-          <span className="mb-1 block text-xs uppercase tracking-wide text-primary-400">
+        <label className="ui-field">
+          <span className="ui-field__label text-xs uppercase tracking-wide text-primary-400">
             Notes
           </span>
           <textarea
@@ -165,12 +165,12 @@ export default function CabinReservation({ cabin }: { cabin: Cabin }) {
               }))
             }
             rows={3}
-            className="w-full resize-none border border-primary-700 bg-primary-900 px-3 py-2 text-primary-100 outline-none transition-colors focus:border-accent-500"
+            className="ui-input resize-none"
             placeholder="Anything we should know?"
           />
         </label>
 
-        <div className="border border-primary-700 bg-primary-950 p-3 text-sm text-primary-200">
+        <div className="ui-notice text-sm">
           <div className="flex items-center justify-between gap-2">
             <span>{nights} nights</span>
             <span>${totalPrice}</span>
@@ -181,7 +181,7 @@ export default function CabinReservation({ cabin }: { cabin: Cabin }) {
           type="submit"
           disabled={pending || Boolean(state.message)}
           aria-busy={pending}
-          className="w-full bg-accent-500 px-4 py-2.5 text-sm font-semibold text-primary-900 transition-colors hover:bg-accent-600 disabled:cursor-wait disabled:opacity-60"
+          className="ui-button ui-button--primary w-full text-sm"
         >
           {pending ? (
             <LoadingIndicator label="Submitting..." />
@@ -193,7 +193,7 @@ export default function CabinReservation({ cabin }: { cabin: Cabin }) {
         </button>
 
         {state.error ? (
-          <p role="alert" className="text-sm text-red-300">
+          <p role="alert" className="ui-notice ui-notice--error text-sm">
             {state.error}
             {state.error ===
               "Complete your guest profile before reserving a cabin." && (
@@ -201,7 +201,7 @@ export default function CabinReservation({ cabin }: { cabin: Cabin }) {
                 {" "}
                 <Link
                   href="/account/profile"
-                  className="underline underline-offset-4"
+                  className="ui-link"
                 >
                   Complete your profile
                 </Link>
@@ -209,11 +209,11 @@ export default function CabinReservation({ cabin }: { cabin: Cabin }) {
             )}
           </p>
         ) : state.message ? (
-          <p role="status" aria-live="polite" className="text-sm text-accent-400">
+          <p role="status" aria-live="polite" className="ui-notice ui-notice--success text-sm">
             {state.message}{" "}
             <Link
               href="/account/reservations"
-              className="underline underline-offset-4"
+              className="ui-link"
             >
               View reservations
             </Link>

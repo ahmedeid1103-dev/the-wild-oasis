@@ -23,10 +23,10 @@ async function AccountPageContent() {
   if (!guest) {
     return (
       <section>
-        <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-accent-400 uppercase">
+        <p className="ui-eyebrow mb-3">
           Your account
         </p>
-        <h1 className="mb-4 text-4xl font-medium text-primary-50 sm:text-5xl">
+        <h1 className="ui-page-title mb-4 text-primary-50">
           Welcome to your stay.
         </h1>
         <p className="mb-8 max-w-2xl text-lg leading-8 text-primary-200">
@@ -74,10 +74,10 @@ async function AccountPageContent() {
 
   return (
     <section>
-      <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-accent-400 uppercase">
+      <p className="ui-eyebrow mb-3">
         Your account
       </p>
-      <h1 className="mb-4 text-4xl font-medium text-primary-50 sm:text-5xl">
+      <h1 className="ui-page-title mb-4 text-primary-50">
         Welcome back, {guest.fullName}.
       </h1>
       <p className="mb-10 max-w-2xl text-lg leading-8 text-primary-200">

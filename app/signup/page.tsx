@@ -15,7 +15,7 @@ type SignupPageProps = {
 export default function SignupPage({ searchParams }: SignupPageProps) {
   return (
     <section className="mx-auto max-w-2xl">
-      <h1 className="mb-3 text-4xl font-medium text-accent-400">
+      <h1 className="ui-page-title mb-3">
         Create an account
       </h1>
       <p className="mb-8 text-lg text-primary-200">

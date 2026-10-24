@@ -112,7 +112,7 @@ export default function Navigation({ isSignedIn, pathname }: NavigationProps) {
           aria-controls={panelId}
           aria-haspopup="true"
           onClick={() => setMenuState({ pathname, open: !isOpen })}
-          className="inline-flex min-h-11 items-center gap-2 border border-primary-800 px-4 text-sm font-semibold transition-colors hover:bg-primary-900"
+          className="ui-button ui-button--secondary min-h-11 px-4 text-sm"
         >
           <span>Menu</span>
           {isOpen ? (
@@ -126,7 +126,7 @@ export default function Navigation({ isSignedIn, pathname }: NavigationProps) {
           id={panelId}
           aria-hidden={!isOpen}
           inert={!isOpen}
-          className={`absolute right-0 top-full z-50 mt-2 w-48 origin-top-right border border-primary-800 bg-primary-950 shadow-lg transition-all duration-150 motion-reduce:transition-none ${
+          className={`ui-card ui-card--raised absolute right-0 top-full z-50 mt-2 w-48 origin-top-right shadow-lg transition-all duration-150 motion-reduce:transition-none ${
             isOpen
               ? "visible translate-y-0 scale-100 opacity-100"
               : "invisible -translate-y-1 scale-95 opacity-0"

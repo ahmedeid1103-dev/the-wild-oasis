@@ -13,8 +13,7 @@ type ProfileFormProps = {
 };
 
 const initialState: ActionState = {};
-const inputClassName =
-  "w-full border border-primary-700 bg-primary-900 px-4 py-3 text-primary-100 outline-none transition-colors focus:border-accent-500";
+const inputClassName = "ui-input";
 
 export default function ProfileForm({ email, profile }: ProfileFormProps) {
   const [state, formAction, pending] = useActionState(
@@ -27,7 +26,7 @@ export default function ProfileForm({ email, profile }: ProfileFormProps) {
     return (
       <article
         aria-label="Saved guest profile"
-        className="relative max-w-3xl overflow-hidden border border-accent-700/70 bg-linear-to-br from-primary-900 via-primary-950 to-primary-950 shadow-2xl shadow-black/25"
+        className="ui-card relative max-w-3xl overflow-hidden"
       >
         <div className="h-1 bg-linear-to-r from-accent-700 via-accent-400 to-accent-700" />
 
@@ -50,7 +49,7 @@ export default function ProfileForm({ email, profile }: ProfileFormProps) {
           <button
             type="button"
             onClick={() => setIsEditing(true)}
-            className="inline-flex items-center justify-center border border-accent-500 px-5 py-3 font-semibold text-accent-300 transition-colors hover:bg-accent-500 hover:text-primary-950"
+            className="ui-button ui-button--outline"
           >
             Update profile
           </button>
@@ -88,7 +87,7 @@ export default function ProfileForm({ email, profile }: ProfileFormProps) {
   return (
     <form
       action={formAction}
-      className="max-w-2xl space-y-5 border border-primary-800 bg-primary-950 p-6 sm:p-8"
+      className="ui-card ui-card--raised max-w-2xl space-y-5 p-6 sm:p-8"
     >
       {email ? (
         <div className="text-sm text-primary-300">
@@ -104,8 +103,8 @@ export default function ProfileForm({ email, profile }: ProfileFormProps) {
         </p>
       )}
 
-      <label className="block text-sm font-medium text-primary-300">
-        <span className="mb-2 block">Full name</span>
+      <label className="ui-field">
+        <span className="ui-field__label">Full name</span>
         <input
           name="fullName"
           type="text"
@@ -117,8 +116,8 @@ export default function ProfileForm({ email, profile }: ProfileFormProps) {
         />
       </label>
 
-      <label className="block text-sm font-medium text-primary-300">
-        <span className="mb-2 block">Nationality</span>
+      <label className="ui-field">
+        <span className="ui-field__label">Nationality</span>
         <input
           name="nationality"
           type="text"
@@ -130,8 +129,8 @@ export default function ProfileForm({ email, profile }: ProfileFormProps) {
         />
       </label>
 
-      <label className="block text-sm font-medium text-primary-300">
-        <span className="mb-2 block">National ID</span>
+      <label className="ui-field">
+        <span className="ui-field__label">National ID</span>
         <input
           name="nationalID"
           type="text"
@@ -142,8 +141,8 @@ export default function ProfileForm({ email, profile }: ProfileFormProps) {
         />
       </label>
 
-      <label className="block text-sm font-medium text-primary-300">
-        <span className="mb-2 block">Country flag</span>
+      <label className="ui-field">
+        <span className="ui-field__label">Country flag</span>
         <input
           name="countryFlag"
           type="text"
@@ -155,7 +154,7 @@ export default function ProfileForm({ email, profile }: ProfileFormProps) {
       </label>
 
       {state.error && (
-        <p role="alert" className="text-sm text-red-300">
+        <p role="alert" className="ui-notice ui-notice--error text-sm">
           {state.error}
         </p>
       )}
@@ -165,7 +164,7 @@ export default function ProfileForm({ email, profile }: ProfileFormProps) {
           type="submit"
           disabled={pending}
           aria-busy={pending}
-          className="bg-accent-500 px-5 py-3 font-semibold text-primary-900 transition-colors hover:bg-accent-600 disabled:cursor-wait disabled:opacity-60"
+          className="ui-button ui-button--primary"
         >
           {pending ? (
             <LoadingIndicator label="Saving..." />
@@ -180,7 +179,7 @@ export default function ProfileForm({ email, profile }: ProfileFormProps) {
           <button
             type="button"
             onClick={() => setIsEditing(false)}
-            className="border border-primary-700 px-5 py-3 font-semibold text-primary-200 transition-colors hover:border-primary-500 hover:text-primary-50"
+            className="ui-button ui-button--secondary"
           >
             Cancel
           </button>

@@ -18,7 +18,7 @@ export default function SignOutButton() {
         type="submit"
         disabled={pending}
         aria-busy={pending}
-        className="flex w-full items-center gap-4 px-5 py-3 font-semibold text-primary-200 transition-colors hover:bg-primary-900 hover:text-primary-100 disabled:cursor-wait disabled:opacity-60"
+        className="ui-button ui-button--ghost w-full justify-start px-5"
       >
         <ArrowRightOnRectangleIcon className="h-5 w-5 text-primary-600" />
 

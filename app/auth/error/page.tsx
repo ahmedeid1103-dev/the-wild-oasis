@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 export default function EmailConfirmationErrorPage() {
   return (
     <section className="mx-auto max-w-2xl">
-      <h1 className="mb-3 text-4xl font-medium text-accent-400">
+      <h1 className="ui-page-title mb-3">
         We couldn&apos;t confirm your email
       </h1>
       <p className="mb-8 text-lg text-primary-200">
@@ -18,13 +18,13 @@ export default function EmailConfirmationErrorPage() {
       <div className="flex flex-wrap gap-5">
         <Link
           href="/login"
-          className="inline-flex bg-accent-500 px-6 py-3 font-semibold text-primary-900 transition-colors hover:bg-accent-600"
+          className="ui-button ui-button--primary"
         >
           Go to sign in
         </Link>
         <Link
           href="/signup"
-          className="inline-flex border border-primary-700 px-6 py-3 font-semibold text-primary-100 transition-colors hover:border-primary-500"
+          className="ui-button ui-button--secondary"
         >
           Create an account
         </Link>

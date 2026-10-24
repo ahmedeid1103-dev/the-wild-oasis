@@ -23,12 +23,11 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
           alt="A secluded cabin beside a mountain lake"
           fill
           sizes="(min-width: 1024px) 50vw, 100vw"
-          loading="eager"
           className="object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-primary-950 via-primary-950/55 to-primary-950/10" />
         <div className="relative z-10 max-w-md">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-accent-200 sm:text-sm">
+          <p className="ui-eyebrow mb-3 text-accent-200 sm:text-sm">
             Your mountain escape
           </p>
           <h2 className="mb-3 text-2xl font-medium leading-tight text-primary-50 sm:text-3xl">
@@ -42,7 +41,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
 
       <div className="flex min-w-0 items-center px-5 py-8 sm:px-8 sm:py-10 lg:px-10">
         <div className="mx-auto w-full max-w-md">
-          <h1 className="mb-3 text-3xl font-medium text-accent-400 sm:text-4xl">
+          <h1 className="ui-page-title mb-3">
             Sign in
           </h1>
           <p className="mb-7 text-base leading-7 text-primary-200 sm:mb-8 sm:text-lg">

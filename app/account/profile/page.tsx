@@ -16,7 +16,7 @@ async function ProfilePageContent() {
 
   return (
     <div>
-      <h1 className="mb-3 text-4xl font-medium text-accent-400">
+      <h1 className="ui-page-title mb-3">
         Guest profile
       </h1>
 
