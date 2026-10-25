@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import ReservationSummary from "@/features/reservations/components/ReservationSummary";
 import { getAccountReservations } from "@/features/reservations/queries";
 
 export const metadata: Metadata = {
@@ -53,74 +54,81 @@ async function ReservationsPageContent() {
             records are not linked automatically.
           </p>
         </div>
-      ) : reservations.length === 0 ? (
-        <div className="ui-card ui-card--raised px-8 py-10">
-          <p className="text-lg text-primary-200">
-            You have no reservations yet. Check out our{" "}
-            <Link
-              href="/cabins"
-              className="ui-link"
-            >
-              luxury cabins &rarr;
-            </Link>
-          </p>
-        </div>
       ) : (
-        <div className="space-y-6">
-          {reservations.map((reservation) => (
-            <article
-              key={reservation.id}
-              className="ui-card ui-card--raised shadow-none"
-            >
-              <div className="flex items-center justify-between border-b border-primary-800 px-6 py-5">
-                <div>
-                  <p className="mb-1 text-sm text-primary-400">
-                    Reservation #{reservation.id}
-                  </p>
-                  <h2 className="text-2xl font-medium text-primary-100">
-                    Cabin {reservation.cabinNumber ?? reservation.cabinId}
-                  </h2>
-                </div>
-                <span className="border border-accent-700 px-3 py-1 text-sm text-accent-400">
-                  {reservation.status}
-                </span>
-              </div>
+        <>
+          <ReservationSummary reservations={reservations} />
 
-              <div className="grid gap-6 px-6 py-6 sm:grid-cols-2 lg:grid-cols-4">
-                <div>
-                  <p className="mb-1 text-sm text-primary-400">Check-in</p>
-                  <p className="text-primary-200">
-                    {formatReservationDate(reservation.startDate)}
-                  </p>
-                </div>
-                <div>
-                  <p className="mb-1 text-sm text-primary-400">Check-out</p>
-                  <p className="text-primary-200">
-                    {formatReservationDate(reservation.endDate)}
-                  </p>
-                </div>
-                <div>
-                  <p className="mb-1 text-sm text-primary-400">Guests</p>
-                  <p className="text-primary-200">
-                    {reservation.numGuests}{" "}
-                    {reservation.numGuests === 1 ? "guest" : "guests"}
-                  </p>
-                </div>
-                <div>
-                  <p className="mb-1 text-sm text-primary-400">Total</p>
-                  <p className="text-primary-200">${reservation.totalPrice}</p>
-                </div>
-              </div>
+          {reservations.length === 0 ? (
+            <div className="ui-card ui-card--raised px-8 py-10">
+              <p className="text-lg text-primary-200">
+                You have no reservations yet. Check out our{" "}
+                <Link href="/cabins" className="ui-link">
+                  luxury cabins &rarr;
+                </Link>
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {reservations.map((reservation) => (
+                <article
+                  key={reservation.id}
+                  className="ui-card ui-card--raised shadow-none"
+                >
+                  <div className="flex items-center justify-between border-b border-primary-800 px-6 py-5">
+                    <div>
+                      <p className="mb-1 text-sm text-primary-400">
+                        Reservation #{reservation.id}
+                      </p>
+                      <h2 className="text-2xl font-medium text-primary-100">
+                        Cabin {reservation.cabinNumber ?? reservation.cabinId}
+                      </h2>
+                    </div>
+                    <span className="border border-accent-700 px-3 py-1 text-sm text-accent-400">
+                      {reservation.status}
+                    </span>
+                  </div>
 
-              <div className="border-t border-primary-800 px-6 py-4">
-                <p className="text-sm text-primary-400">
-                  {reservation.numNights}{" "}
-                  {reservation.numNights === 1 ? "night" : "nights"}
-                </p>
-              </div>
-            </article>
-          ))}
-        </div>
+                  <div className="grid gap-6 px-6 py-6 sm:grid-cols-2 lg:grid-cols-4">
+                    <div>
+                      <p className="mb-1 text-sm text-primary-400">Check-in</p>
+                      <p className="text-primary-200">
+                        {formatReservationDate(reservation.startDate)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="mb-1 text-sm text-primary-400">
+                        Check-out
+                      </p>
+                      <p className="text-primary-200">
+                        {formatReservationDate(reservation.endDate)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="mb-1 text-sm text-primary-400">Guests</p>
+                      <p className="text-primary-200">
+                        {reservation.numGuests}{" "}
+                        {reservation.numGuests === 1 ? "guest" : "guests"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="mb-1 text-sm text-primary-400">Total</p>
+                      <p className="text-primary-200">
+                        ${reservation.totalPrice}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-primary-800 px-6 py-4">
+                    <p className="text-sm text-primary-400">
+                      {reservation.numNights}{" "}
+                      {reservation.numNights === 1 ? "night" : "nights"}
+                    </p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
