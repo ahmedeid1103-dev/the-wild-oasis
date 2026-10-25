@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
-import about1 from "@/public/about-1.jpg";
-import about2 from "@/public/about-2.jpg";
+import about1 from "@/public/about-1.webp";
+import about2 from "@/public/about-2.webp";
 
 export const metadata: Metadata = {
   title: "About",

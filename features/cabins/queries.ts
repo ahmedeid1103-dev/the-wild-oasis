@@ -41,7 +41,9 @@ export async function getCabin(cabinId: string): Promise<Cabin | null> {
   // Fetch one cabin by ID; return null when no row exists instead of throwing.
   const { data, error } = await supabase
     .from("cabins")
-    .select("*")
+    .select(
+      "id, name, maxCapacity, regularPrice, discount, image, description, cabin_number",
+    )
     .eq("id", cabinId)
     .maybeSingle();
 

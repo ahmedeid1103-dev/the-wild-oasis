@@ -4,7 +4,7 @@ import Image from "next/image";
 
 import LoadingIndicator from "@/components/LoadingIndicator";
 import AuthPageContent from "@/features/auth/components/AuthPageContent";
-import bg from "@/public/bg.png";
+import bg from "@/public/bg.webp";
 
 export const metadata: Metadata = {
   title: "Sign in",
