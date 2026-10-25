@@ -1,6 +1,6 @@
 "use server";
 
-import { updateTag, revalidatePath } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { isUnauthenticatedAuthError } from "@/lib/auth-errors";
@@ -148,9 +148,6 @@ export async function createReservationAction(
     return { error: getReservationSaveError(insertError.code) };
   }
 
-  updateTag("cabins");
-  updateTag(`cabin-${input.cabinId}`);
-  revalidatePath(`/cabins/${input.cabinId}`);
   revalidatePath("/account/reservations");
 
   return { message: "Your reservation has been submitted." };
