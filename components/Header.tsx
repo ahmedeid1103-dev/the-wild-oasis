@@ -1,3 +1,5 @@
+import "server-only";
+
 import { Suspense } from "react";
 import { cacheLife } from "next/cache";
 
@@ -23,19 +25,18 @@ async function getSignedInState() {
   cacheLife("minutes");
 
   const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
 
-  try {
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser();
-
-    if (error && isUnauthenticatedAuthError(error)) {
-      return false;
-    }
-
-    return !error && Boolean(user);
-  } catch {
+  if (error && isUnauthenticatedAuthError(error)) {
     return false;
   }
+
+  if (error) {
+    throw error;
+  }
+
+  return Boolean(user);
 }
