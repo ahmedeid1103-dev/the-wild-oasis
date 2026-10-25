@@ -37,7 +37,9 @@ export default function SideNavigation() {
         {navLinks.map((link) => {
           const Icon = link.icon;
           const isActive =
-            pathname === link.href || pathname.startsWith(`${link.href}/`);
+            pathname === link.href ||
+            (link.href !== "/account" &&
+              pathname.startsWith(`${link.href}/`));
 
           return (
             <li key={link.href}>

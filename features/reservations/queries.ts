@@ -1,20 +1,34 @@
 import "server-only";
 
+import { cacheLife, cacheTag } from "next/cache";
+
 import { getAccountGuest } from "@/features/profile/queries";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export async function getAccountReservations() {
-  const { guest, supabase } = await getAccountGuest();
+  const { guest } = await getAccountGuest();
 
   if (!guest) {
     return { guest, reservations: [] };
   }
 
-  const { data: bookings, error: bookingsError } = await supabase
+  const reservations = await getReservationsByGuestId(guest.id);
+
+  return { guest, reservations };
+}
+
+async function getReservationsByGuestId(guestId: string) {
+  "use cache: private";
+  cacheLife("minutes");
+  cacheTag(`account-reservations-${guestId}`);
+
+  const accountSupabase = await createServerSupabaseClient();
+  const { data: bookings, error: bookingsError } = await accountSupabase
     .from("bookings")
     .select(
       "id, startDate, endDate, numGuests, numNights, totalPrice, status, cabinId",
     )
-    .eq("guestId", guest.id)
+    .eq("guestId", guestId)
     .order("startDate", { ascending: false });
 
   if (bookingsError) {
@@ -23,7 +37,7 @@ export async function getAccountReservations() {
 
   const cabinIds = [...new Set(bookings.map((booking) => booking.cabinId))];
   const { data: cabins, error: cabinsError } = cabinIds.length
-    ? await supabase
+    ? await accountSupabase
         .from("cabins")
         .select("id, cabin_number")
         .in("id", cabinIds)
@@ -37,11 +51,8 @@ export async function getAccountReservations() {
     cabins.map((cabin) => [cabin.id, cabin.cabin_number]),
   );
 
-  return {
-    guest,
-    reservations: bookings.map((booking) => ({
-      ...booking,
-      cabinNumber: cabinNumbers.get(booking.cabinId),
-    })),
-  };
+  return bookings.map((booking) => ({
+    ...booking,
+    cabinNumber: cabinNumbers.get(booking.cabinId),
+  }));
 }

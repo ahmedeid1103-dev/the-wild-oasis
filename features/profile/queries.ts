@@ -1,13 +1,14 @@
 import "server-only";
 
-import { unstable_noStore } from "next/cache";
+import { cacheLife, cacheTag } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { isUnauthenticatedAuthError } from "@/lib/auth-errors";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export async function getAccountGuest() {
-  unstable_noStore();
+  "use cache: private";
+  cacheLife("minutes");
 
   const supabase = await createServerSupabaseClient();
   const {
@@ -27,6 +28,8 @@ export async function getAccountGuest() {
     redirect("/login?next=%2Faccount");
   }
 
+  cacheTag(`account-profile-${user.id}`);
+
   const { data: guest, error } = await supabase
     .from("guests")
     .select("id, fullName, email, nationality, nationalID, countryFlag")
@@ -37,5 +40,5 @@ export async function getAccountGuest() {
     throw error;
   }
 
-  return { guest, supabase };
+  return { guest };
 }

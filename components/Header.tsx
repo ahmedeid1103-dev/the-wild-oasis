@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { unstable_noStore } from "next/cache";
+import { cacheLife } from "next/cache";
 
 import HeaderClient from "./HeaderClient";
 import { isUnauthenticatedAuthError } from "@/lib/auth-errors";
@@ -19,7 +19,8 @@ async function AuthenticatedHeader() {
 }
 
 async function getSignedInState() {
-  unstable_noStore();
+  "use cache: private";
+  cacheLife("minutes");
 
   const supabase = await createServerSupabaseClient();
 

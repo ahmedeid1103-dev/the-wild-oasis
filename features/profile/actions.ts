@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { isUnauthenticatedAuthError } from "@/lib/auth-errors";
@@ -99,6 +99,7 @@ export async function saveProfileAction(
     };
   }
 
+  updateTag(`account-profile-${user.id}`);
   revalidatePath("/account/profile");
   revalidatePath("/account");
   redirect("/account/profile");
