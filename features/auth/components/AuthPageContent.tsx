@@ -1,4 +1,3 @@
-import { unstable_noStore } from "next/cache";
 import { redirect } from "next/navigation";
 
 import AuthForm from "./AuthForm";
@@ -15,8 +14,6 @@ export default async function AuthPageContent({
   mode,
   searchParams,
 }: AuthPageContentProps) {
-  unstable_noStore();
-
   const { next } = await searchParams;
   const destination = safeLocalRedirect(next);
   const supabase = await createServerSupabaseClient();
