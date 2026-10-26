@@ -94,13 +94,7 @@ export async function signInAction(
       };
     }
 
-    return {
-      fieldErrors: {
-        email:
-          "Check that this is the email address registered to your account.",
-        password: "Check your password and try again.",
-      },
-    };
+    return { error: "The email or password is incorrect. Please try again." };
   }
 
   redirect(safeLocalRedirect(formData.get("next")));

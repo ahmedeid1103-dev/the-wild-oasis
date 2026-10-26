@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/solid";
+import { useActionState, useEffect, useRef, useState } from "react";
 
 import LoadingIndicator from "@/components/LoadingIndicator";
 import { signInAction, signUpAction } from "@/features/auth/actions";
@@ -19,7 +20,21 @@ export default function AuthForm({ mode, next }: AuthFormProps) {
   const [state, formAction, pending] = useActionState(action, initialState);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const emailInputRef = useRef<HTMLInputElement>(null);
+  const passwordInputRef = useRef<HTMLInputElement>(null);
+  const formErrorRef = useRef<HTMLParagraphElement>(null);
   const isSignup = mode === "signup";
+
+  useEffect(() => {
+    if (state.fieldErrors?.email) {
+      emailInputRef.current?.focus();
+    } else if (state.fieldErrors?.password) {
+      passwordInputRef.current?.focus();
+    } else if (state.error) {
+      formErrorRef.current?.focus();
+    }
+  }, [state]);
 
   return (
     <div className="ui-card w-full max-w-md p-5 backdrop-blur sm:p-8">
@@ -32,6 +47,7 @@ export default function AuthForm({ mode, next }: AuthFormProps) {
           </label>
           <input
             id="auth-email"
+            ref={emailInputRef}
             name="email"
             type="email"
             autoComplete="email"
@@ -60,22 +76,39 @@ export default function AuthForm({ mode, next }: AuthFormProps) {
           <label htmlFor="auth-password" className="ui-field__label">
             Password
           </label>
-          <input
-            id="auth-password"
-            name="password"
-            type="password"
-            autoComplete={isSignup ? "new-password" : "current-password"}
-            minLength={isSignup ? 8 : undefined}
-            maxLength={128}
-            required
-            className="ui-input"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            aria-invalid={Boolean(state.fieldErrors?.password)}
-            aria-describedby={
-              state.fieldErrors?.password ? "auth-password-error" : undefined
-            }
-          />
+          <div className="relative">
+            <input
+              id="auth-password"
+              ref={passwordInputRef}
+              name="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete={isSignup ? "new-password" : "current-password"}
+              minLength={isSignup ? 8 : undefined}
+              maxLength={128}
+              required
+              className="ui-input pr-12"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              aria-invalid={Boolean(state.fieldErrors?.password)}
+              aria-describedby={
+                state.fieldErrors?.password ? "auth-password-error" : undefined
+              }
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((visible) => !visible)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword}
+              title={showPassword ? "Hide password" : "Show password"}
+              className="absolute inset-y-0 right-0 inline-flex w-12 items-center justify-center text-primary-300 transition-colors hover:text-primary-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-300"
+            >
+              {showPassword ? (
+                <EyeSlashIcon aria-hidden="true" className="size-5" />
+              ) : (
+                <EyeIcon aria-hidden="true" className="size-5" />
+              )}
+            </button>
+          </div>
           {state.fieldErrors?.password && (
             <p
               id="auth-password-error"
@@ -88,7 +121,12 @@ export default function AuthForm({ mode, next }: AuthFormProps) {
         </div>
 
         {state.error && (
-          <p role="alert" className="ui-notice ui-notice--error text-sm">
+          <p
+            ref={formErrorRef}
+            role="alert"
+            tabIndex={-1}
+            className="ui-notice ui-notice--error text-sm"
+          >
             {state.error}
           </p>
         )}
