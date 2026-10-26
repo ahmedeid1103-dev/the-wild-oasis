@@ -1,24 +1,31 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import {
+  useActionState,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import Link from "next/link";
 
 import LoadingIndicator from "@/components/LoadingIndicator";
 import { createReservationAction } from "@/features/reservations/actions";
+import {
+  addDaysToBookingDate,
+  getBookingDate,
+} from "@/features/reservations/dates";
 import type { ActionState } from "@/lib/action-state";
 
 const initialState: ActionState = {};
+const noSubscribe = () => () => {};
+const getServerBookingDate = () => "";
 
-function getDefaultDates() {
-  const start = new Date();
-  start.setDate(start.getDate() + 3);
-
-  const end = new Date(start);
-  end.setDate(end.getDate() + 4);
+function getDefaultDates(today: string) {
+  const startDate = addDaysToBookingDate(today, 3);
 
   return {
-    startDate: start.toISOString().slice(0, 10),
-    endDate: end.toISOString().slice(0, 10),
+    startDate,
+    endDate: addDaysToBookingDate(startDate, 4),
   };
 }
 
@@ -28,25 +35,44 @@ type CabinReservationFormProps = {
   discountedPrice: number;
 };
 
+type ReservationState = {
+  startDate?: string;
+  endDate?: string;
+  guests: number;
+  notes: string;
+};
+
 export default function CabinReservationForm({
   cabinId,
   maxCapacity,
   discountedPrice,
 }: CabinReservationFormProps) {
-  const defaultDates = useMemo(() => getDefaultDates(), []);
   const [state, formAction, pending] = useActionState(
     createReservationAction,
     initialState,
   );
-  const [reservation, setReservation] = useState({
-    startDate: defaultDates.startDate,
-    endDate: defaultDates.endDate,
+  const today = useSyncExternalStore(
+    noSubscribe,
+    getBookingDate,
+    getServerBookingDate,
+  );
+  const defaultDates = useMemo(
+    () =>
+      today
+        ? getDefaultDates(today)
+        : { startDate: "", endDate: "" },
+    [today],
+  );
+  const [reservation, setReservation] = useState<ReservationState>({
     guests: Math.min(maxCapacity, 2),
     notes: "",
   });
+  const startDate = reservation.startDate ?? defaultDates.startDate;
+  const endDate = reservation.endDate ?? defaultDates.endDate;
+
   const nights = useMemo(() => {
-    const start = new Date(reservation.startDate);
-    const end = new Date(reservation.endDate);
+    const start = new Date(startDate);
+    const end = new Date(endDate);
 
     if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
       return 0;
@@ -54,22 +80,17 @@ export default function CabinReservationForm({
 
     const diffInMs = end.getTime() - start.getTime();
     return Math.max(Math.ceil(diffInMs / (1000 * 60 * 60 * 24)), 0);
-  }, [reservation.startDate, reservation.endDate]);
+  }, [startDate, endDate]);
 
   const totalPrice = nights > 0 ? nights * discountedPrice : 0;
   const guestOptions = useMemo(() => {
     return Array.from({ length: maxCapacity }, (_, index) => index + 1);
   }, [maxCapacity]);
 
-  const today = new Date().toISOString().slice(0, 10);
   const checkoutMinimum =
-    reservation.startDate &&
-    !Number.isNaN(Date.parse(`${reservation.startDate}T00:00:00Z`))
-      ? new Date(
-          Date.parse(`${reservation.startDate}T00:00:00Z`) + 86_400_000,
-        )
-          .toISOString()
-          .slice(0, 10)
+    startDate &&
+    Number.isFinite(Date.parse(`${startDate}T00:00:00Z`))
+      ? addDaysToBookingDate(startDate, 1)
       : today;
 
   const formattedNightlyPrice = discountedPrice.toLocaleString("en-US");
@@ -89,7 +110,7 @@ export default function CabinReservationForm({
             name="startDate"
             min={today}
             required
-            value={reservation.startDate}
+            value={startDate}
             onChange={(event) =>
               setReservation((current) => ({
                 ...current,
@@ -109,7 +130,7 @@ export default function CabinReservationForm({
             name="endDate"
             min={checkoutMinimum}
             required
-            value={reservation.endDate}
+            value={endDate}
             onChange={(event) =>
               setReservation((current) => ({
                 ...current,
