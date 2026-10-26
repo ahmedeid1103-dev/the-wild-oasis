@@ -11,7 +11,7 @@ export default function Page() {
         fill
         preload
         placeholder="blur"
-        quality={80}
+        quality={85}
         sizes="100vw"
         className="object-cover object-center"
         alt="Mountains and forests with two cabins"
