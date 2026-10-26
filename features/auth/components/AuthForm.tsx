@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 import LoadingIndicator from "@/components/LoadingIndicator";
 import { signInAction, signUpAction } from "@/features/auth/actions";
@@ -17,28 +17,51 @@ const initialState: ActionState = {};
 export default function AuthForm({ mode, next }: AuthFormProps) {
   const action = mode === "login" ? signInAction : signUpAction;
   const [state, formAction, pending] = useActionState(action, initialState);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const isSignup = mode === "signup";
 
   return (
     <div className="ui-card w-full max-w-md p-5 backdrop-blur sm:p-8">
-      <form action={formAction} className="space-y-5">
+      <form action={formAction} className="space-y-5" noValidate>
         <input type="hidden" name="next" value={next} />
 
-        <label className="ui-field">
-          <span className="ui-field__label">Email address</span>
+        <div className="ui-field">
+          <label htmlFor="auth-email" className="ui-field__label">
+            Email address
+          </label>
           <input
+            id="auth-email"
             name="email"
             type="email"
             autoComplete="email"
             maxLength={254}
             required
             className="ui-input"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            aria-invalid={Boolean(state.fieldErrors?.email)}
+            aria-describedby={
+              state.fieldErrors?.email ? "auth-email-error" : undefined
+            }
           />
-        </label>
+          {state.fieldErrors?.email && (
+            <p
+              id="auth-email-error"
+              role="alert"
+              className="mt-2 text-sm text-red-300"
+            >
+              {state.fieldErrors.email}
+            </p>
+          )}
+        </div>
 
-        <label className="ui-field">
-          <span className="ui-field__label">Password</span>
+        <div className="ui-field">
+          <label htmlFor="auth-password" className="ui-field__label">
+            Password
+          </label>
           <input
+            id="auth-password"
             name="password"
             type="password"
             autoComplete={isSignup ? "new-password" : "current-password"}
@@ -46,8 +69,23 @@ export default function AuthForm({ mode, next }: AuthFormProps) {
             maxLength={128}
             required
             className="ui-input"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            aria-invalid={Boolean(state.fieldErrors?.password)}
+            aria-describedby={
+              state.fieldErrors?.password ? "auth-password-error" : undefined
+            }
           />
-        </label>
+          {state.fieldErrors?.password && (
+            <p
+              id="auth-password-error"
+              role="alert"
+              className="mt-2 text-sm text-red-300"
+            >
+              {state.fieldErrors.password}
+            </p>
+          )}
+        </div>
 
         {state.error && (
           <p role="alert" className="ui-notice ui-notice--error text-sm">

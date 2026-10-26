@@ -22,24 +22,29 @@ function parseCredentials(formData: FormData, mode: "login" | "signup") {
   );
 
   if (!result.success) {
-    const hasEmailError = result.error.issues.some(
+    const emailIssue = result.error.issues.find(
       (issue) => issue.path[0] === "email",
     );
-    const hasPasswordMinimumError = result.error.issues.some(
-      (issue) => issue.path[0] === "password" && issue.code === "too_small",
+    const passwordIssue = result.error.issues.find(
+      (issue) => issue.path[0] === "password",
     );
 
     return {
       success: false as const,
       state: {
-        error:
-          mode === "signup" &&
-          !hasEmailError &&
-          hasPasswordMinimumError &&
-          typeof credentials.password === "string" &&
-          credentials.password.length > 0
-            ? "Choose a password with at least 8 characters."
-            : "Enter a valid email address and password.",
+        fieldErrors: {
+          ...(emailIssue ? { email: "Enter a valid email address." } : {}),
+          ...(passwordIssue
+            ? {
+                password:
+                  passwordIssue.code === "too_small"
+                    ? mode === "signup"
+                      ? "Choose a password with at least 8 characters."
+                      : "Enter your password."
+                    : "Password must be 128 characters or fewer.",
+              }
+            : {}),
+        },
       },
     };
   }
@@ -83,11 +88,19 @@ export async function signInAction(
   if (error) {
     if (error.code === "email_not_confirmed") {
       return {
-        error: "Please confirm your email address before signing in.",
+        fieldErrors: {
+          email: "Please confirm your email address before signing in.",
+        },
       };
     }
 
-    return { error: "The email or password is incorrect. Please try again." };
+    return {
+      fieldErrors: {
+        email:
+          "Check that this is the email address registered to your account.",
+        password: "Check your password and try again.",
+      },
+    };
   }
 
   redirect(safeLocalRedirect(formData.get("next")));
