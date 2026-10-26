@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { getBookingDate } from "./dates";
+
 const DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 function isCalendarDate(value: string): boolean {
@@ -54,7 +56,7 @@ export const reservationSchema = z
     observations: z.string().trim().max(500),
   })
   .refine(
-    ({ startDate }) => startDate >= new Date().toISOString().slice(0, 10),
+    ({ startDate }) => startDate >= getBookingDate(),
     { path: ["startDate"] },
   )
   .refine(({ startDate, endDate }) => endDate > startDate, {
