@@ -112,14 +112,13 @@ export default function Navigation({ isSignedIn, pathname }: NavigationProps) {
           aria-controls={panelId}
           aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
           onClick={() => setMenuState({ pathname, open: !isOpen })}
-          className="ui-button ui-button--outline min-h-11 px-4 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-300"
+          className="ui-button ui-button--outline min-h-11 px-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-300"
         >
           {isOpen ? (
             <XMarkIcon aria-hidden="true" className="size-5" />
           ) : (
             <Bars3Icon aria-hidden="true" className="size-5" />
           )}
-          <span>{isOpen ? "Close" : "Menu"}</span>
         </button>
 
         <div
