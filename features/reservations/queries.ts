@@ -2,6 +2,7 @@ import "server-only";
 
 import { cacheLife, cacheTag } from "next/cache";
 
+import { getCabins } from "@/features/cabins/queries";
 import { getAccountGuest } from "@/features/profile/queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -12,7 +13,17 @@ export async function getAccountReservations() {
     return { guest, reservations: [] };
   }
 
-  const reservations = await getReservationsByGuestId(guest.id);
+  const [bookings, cabins] = await Promise.all([
+    getReservationsByGuestId(guest.id),
+    getCabins(),
+  ]);
+  const cabinNumbers = new Map(
+    cabins.map((cabin) => [cabin.id, cabin.cabinNumber]),
+  );
+  const reservations = bookings.map((booking) => ({
+    ...booking,
+    cabinNumber: cabinNumbers.get(booking.cabinId),
+  }));
 
   return { guest, reservations };
 }
@@ -35,24 +46,5 @@ async function getReservationsByGuestId(guestId: string) {
     throw bookingsError;
   }
 
-  const cabinIds = [...new Set(bookings.map((booking) => booking.cabinId))];
-  const { data: cabins, error: cabinsError } = cabinIds.length
-    ? await accountSupabase
-        .from("cabins")
-        .select("id, cabin_number")
-        .in("id", cabinIds)
-    : { data: [], error: null };
-
-  if (cabinsError) {
-    throw cabinsError;
-  }
-
-  const cabinNumbers = new Map(
-    cabins.map((cabin) => [cabin.id, cabin.cabin_number]),
-  );
-
-  return bookings.map((booking) => ({
-    ...booking,
-    cabinNumber: cabinNumbers.get(booking.cabinId),
-  }));
+  return bookings;
 }

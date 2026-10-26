@@ -70,6 +70,7 @@ flowchart TB
 
 - `app/` defines route entry points. Feature modules own feature-specific reads, writes, validation, and UI; `components/` and `lib/` hold shared UI and infrastructure.
 - Client Components invoke exported Server Actions for auth, profile, and reservation mutations. Those actions validate submitted values and independently authenticate; profile and reservation operations derive the guest identity from the signed-in user.
+- The shared server-render auth lookup is memoized per React request so the header and account data can reuse the same verified user result. Reservation bookings and the shared cached cabin catalog load concurrently.
 - `proxy.ts` refreshes the Supabase session and performs an optimistic redirect for account URLs. It is not the authorization boundary for data access.
 - `lib/supabase/server.ts` adapts request cookies for server auth and data access. `data-client.ts` is reserved for public server-side cabin reads. Both are server-only; `client.ts` exposes a browser client factory that is currently unused. All use the public publishable key.
 - Cabin reads use the remote cache; account reads use private caching and user-specific tags. Mutations invalidate the relevant account tags and routes.

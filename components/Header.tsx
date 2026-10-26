@@ -1,11 +1,10 @@
 import "server-only";
 
 import { Suspense } from "react";
-import { cacheLife } from "next/cache";
 
 import HeaderClient from "./HeaderClient";
 import { isUnauthenticatedAuthError } from "@/lib/auth-errors";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/supabase/current-user";
 
 export default function Header() {
   return (
@@ -21,14 +20,7 @@ async function AuthenticatedHeader() {
 }
 
 async function getSignedInState() {
-  "use cache: private";
-  cacheLife("minutes");
-
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
+  const { user, error } = await getCurrentUser();
 
   if (error && isUnauthenticatedAuthError(error)) {
     return false;
