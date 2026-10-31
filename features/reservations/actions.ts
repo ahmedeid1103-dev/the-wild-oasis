@@ -3,17 +3,30 @@
 import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { isUnauthenticatedAuthError } from "@/lib/auth-errors";
 import type { ActionState } from "@/lib/action-state";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth/current-user";
+import { postgresPool } from "@/lib/database";
 import { reservationSchema } from "./schemas";
 
-function getReservationSaveError(code: string | undefined): string {
+function getReservationSaveError(code: string | undefined): string | null {
   if (code === "42501") {
-    return "Reservation creation is unavailable until the reservation permissions migration has been applied.";
+    return "Reservation creation is unavailable until the database permissions are configured.";
   }
 
-  return "We couldn't create this reservation. Please try again.";
+  return null;
+}
+
+function getDatabaseErrorCode(error: unknown): string | undefined {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    typeof error.code === "string"
+  ) {
+    return error.code;
+  }
+
+  return undefined;
 }
 
 export async function createReservationAction(
@@ -33,122 +46,161 @@ export async function createReservationAction(
   }
 
   const input = result.data;
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError && isUnauthenticatedAuthError(authError)) {
-    redirect(`/login?next=${encodeURIComponent(`/cabins/${input.cabinId}`)}`);
-  }
-
-  if (authError) {
-    return { error: "We couldn't verify your sign-in. Please try again." };
-  }
+  const { user } = await getCurrentUser();
 
   if (!user) {
     redirect(`/login?next=${encodeURIComponent(`/cabins/${input.cabinId}`)}`);
   }
 
-  const { data: guest, error: guestError } = await supabase
-    .from("guests")
-    .select("id")
-    .eq("auth_user_id", user.id)
-    .maybeSingle();
+  const client = await postgresPool.connect();
+  let transactionOpen = false;
 
-  if (guestError) {
-    return { error: "We couldn't verify your guest profile. Please try again." };
+  try {
+    await client.query("BEGIN");
+    transactionOpen = true;
+    await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [
+      input.cabinId,
+    ]);
+
+    const { rows: cabins } = await client.query<{
+      regularPrice: number | string;
+      discount: number | string;
+      maxCapacity: number | string;
+    }>(
+      `SELECT "regularPrice", discount, "maxCapacity"
+       FROM public.cabins
+       WHERE id = $1
+       FOR SHARE`,
+      [input.cabinId],
+    );
+    const cabin = cabins[0];
+
+    if (!cabin) {
+      await client.query("ROLLBACK");
+      transactionOpen = false;
+      return { error: "This cabin is no longer available." };
+    }
+
+    const { rows: guests } = await client.query<{ id: string | number }>(
+      `SELECT id
+       FROM public.guests
+       WHERE better_auth_user_id = $1
+       LIMIT 1`,
+      [user.id],
+    );
+    const guest = guests[0];
+
+    if (!guest) {
+      await client.query("ROLLBACK");
+      transactionOpen = false;
+      return {
+        error: "Complete your guest profile before reserving a cabin.",
+      };
+    }
+
+    const maxCapacity = Number(cabin.maxCapacity);
+
+    if (
+      !Number.isSafeInteger(input.numGuests) ||
+      input.numGuests < 1 ||
+      !Number.isSafeInteger(maxCapacity) ||
+      input.numGuests > maxCapacity
+    ) {
+      await client.query("ROLLBACK");
+      transactionOpen = false;
+      return { error: "Choose a guest count within this cabin's capacity." };
+    }
+
+    const regularPrice = Number(cabin.regularPrice);
+    const discount = Number(cabin.discount);
+    const nightlyRate = Math.max(regularPrice - discount, 0);
+    const numNights =
+      (Date.parse(`${input.endDate}T00:00:00Z`) -
+        Date.parse(`${input.startDate}T00:00:00Z`)) /
+      86_400_000;
+    const totalPrice = nightlyRate * numNights;
+
+    if (
+      !Number.isFinite(regularPrice) ||
+      !Number.isFinite(discount) ||
+      !Number.isSafeInteger(nightlyRate) ||
+      !Number.isSafeInteger(numNights) ||
+      !Number.isSafeInteger(totalPrice)
+    ) {
+      await client.query("ROLLBACK");
+      transactionOpen = false;
+      return { error: "Choose valid reservation dates and try again." };
+    }
+
+    const { rows: availability } = await client.query<{ available: boolean }>(
+      `SELECT NOT EXISTS (
+         SELECT 1
+         FROM public.bookings AS booking
+         WHERE booking."cabinId" = $1
+           AND booking."startDate" < ($3::date::timestamp AT TIME ZONE 'UTC')
+           AND booking."endDate" > ($2::date::timestamp AT TIME ZONE 'UTC')
+           AND booking.status IN ('unconfirmed', 'checked-in')
+       ) AS available`,
+      [input.cabinId, input.startDate, input.endDate],
+    );
+
+    if (availability[0]?.available !== true) {
+      await client.query("ROLLBACK");
+      transactionOpen = false;
+      return {
+        error: "This cabin is already reserved for some of those dates.",
+      };
+    }
+
+    await client.query(
+      `INSERT INTO public.bookings (
+         "guestId", "cabinId", "cabinPrice", "startDate", "endDate",
+         "numGuests", "numNights", "totalPrice", status, "isPaid",
+         observations
+       )
+       VALUES (
+         $1, $2, $3, $4::date::timestamp AT TIME ZONE 'UTC',
+         $5::date::timestamp AT TIME ZONE 'UTC', $6, $7, $8,
+         'unconfirmed', false, $9
+       )`,
+      [
+        guest.id,
+        input.cabinId,
+        nightlyRate,
+        input.startDate,
+        input.endDate,
+        input.numGuests,
+        numNights,
+        totalPrice,
+        input.observations,
+      ],
+    );
+    await client.query("COMMIT");
+    transactionOpen = false;
+  } catch (error) {
+    if (transactionOpen) {
+      try {
+        await client.query("ROLLBACK");
+      } catch (rollbackError) {
+        throw new AggregateError(
+          [error, rollbackError],
+          "The reservation transaction failed and could not be rolled back.",
+        );
+      }
+    }
+
+    const message = getReservationSaveError(getDatabaseErrorCode(error));
+
+    if (message) {
+      return { error: message };
+    }
+
+    throw error;
+  } finally {
+    client.release();
   }
 
-  if (!guest) {
-    return {
-      error: "Complete your guest profile before reserving a cabin.",
-    };
-  }
-
-  const { data: cabin, error: cabinError } = await supabase
-    .from("cabins")
-    .select("regularPrice, discount, maxCapacity")
-    .eq("id", input.cabinId)
-    .maybeSingle();
-
-  if (cabinError) {
-    return { error: "We couldn't verify this cabin. Please try again." };
-  }
-
-  if (!cabin) {
-    return { error: "This cabin is no longer available." };
-  }
-
-  if (
-    !Number.isSafeInteger(input.numGuests) ||
-    input.numGuests < 1 ||
-    input.numGuests > cabin.maxCapacity
-  ) {
-    return { error: "Choose a guest count within this cabin's capacity." };
-  }
-
-  const nightlyRate = Math.max(cabin.regularPrice - cabin.discount, 0);
-
-  if (!Number.isFinite(nightlyRate) || nightlyRate < 0) {
-    return { error: "We couldn't calculate this cabin's price." };
-  }
-
-  const numNights =
-    (Date.parse(`${input.endDate}T00:00:00Z`) -
-      Date.parse(`${input.startDate}T00:00:00Z`)) /
-    86_400_000;
-  const totalPrice = nightlyRate * numNights;
-
-  if (
-    !Number.isSafeInteger(numNights) ||
-    !Number.isSafeInteger(totalPrice)
-  ) {
-    return { error: "Choose valid reservation dates and try again." };
-  }
-
-  const { data: isAvailable, error: availabilityError } = await supabase.rpc(
-    "is_booking_available",
-    {
-      p_cabin_id: input.cabinId,
-      p_start_date: input.startDate,
-      p_end_date: input.endDate,
-    },
-  );
-
-  if (availabilityError) {
-    return {
-      error:
-        "We couldn't verify cabin availability. Please try again later.",
-    };
-  }
-
-  if (isAvailable !== true) {
-    return {
-      error: "This cabin is already reserved for some of those dates.",
-    };
-  }
-
-  const { error: insertError } = await supabase.from("bookings").insert({
-    cabinId: input.cabinId,
-    guestId: guest.id,
-    cabinPrice: nightlyRate,
-    startDate: `${input.startDate}T00:00:00.000Z`,
-    endDate: `${input.endDate}T00:00:00.000Z`,
-    numGuests: input.numGuests,
-    numNights,
-    totalPrice,
-    status: "unconfirmed",
-    isPaid: false,
-    observations: input.observations,
-  });
-
-  if (insertError) {
-    return { error: getReservationSaveError(insertError.code) };
-  }
-
-  updateTag(`account-reservations-${guest.id}`);
+  updateTag(`account-reservations-${user.id}`);
   revalidatePath("/account/reservations");
 
   return { message: "Your reservation has been submitted." };

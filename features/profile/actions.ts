@@ -3,21 +3,34 @@
 import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { isUnauthenticatedAuthError } from "@/lib/auth-errors";
 import type { ActionState } from "@/lib/action-state";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth/current-user";
+import { postgresPool } from "@/lib/database";
 import { guestProfileSchema } from "./schemas";
 
-function getSaveError(code: string | undefined): string {
+function getSaveError(code: string | undefined): string | null {
   if (code === "42501") {
-    return "Profile saving is unavailable until the guest profile permissions migration has been applied.";
+    return "Profile saving is unavailable until the database permissions are configured.";
   }
 
   if (code === "23505") {
     return "A profile for your account already exists. Refresh the page and try again.";
   }
 
-  return "We couldn't save your profile. Please try again.";
+  return null;
+}
+
+function getDatabaseErrorCode(error: unknown): string | undefined {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    typeof error.code === "string"
+  ) {
+    return error.code;
+  }
+
+  return undefined;
 }
 
 export async function saveProfileAction(
@@ -38,19 +51,7 @@ export async function saveProfileAction(
   }
 
   const values = parsedValues.data;
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError && isUnauthenticatedAuthError(authError)) {
-    redirect("/login?next=%2Faccount%2Fprofile");
-  }
-
-  if (authError) {
-    throw authError;
-  }
+  const { user } = await getCurrentUser();
 
   if (!user) {
     redirect("/login?next=%2Faccount%2Fprofile");
@@ -62,44 +63,46 @@ export async function saveProfileAction(
     };
   }
 
-  const { data: profile, error: profileError } = await supabase
-    .from("guests")
-    .select("id")
-    .eq("auth_user_id", user.id)
-    .maybeSingle();
+  try {
+    const result = await postgresPool.query<{ id: string | number }>(
+      `INSERT INTO public.guests (
+         "fullName", email, nationality, "nationalID", "countryFlag",
+         better_auth_user_id
+       )
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (better_auth_user_id) DO UPDATE
+       SET "fullName" = EXCLUDED."fullName",
+           nationality = EXCLUDED.nationality,
+           "nationalID" = EXCLUDED."nationalID",
+           "countryFlag" = EXCLUDED."countryFlag"
+       RETURNING id`,
+      [
+        values.fullName,
+        user.email,
+        values.nationality,
+        values.nationalID,
+        values.countryFlag,
+        user.id,
+      ],
+    );
 
-  if (profileError) {
-    return { error: getSaveError(profileError.code) };
-  }
+    const guest = result.rows[0];
 
-  const result = profile
-    ? await supabase
-        .from("guests")
-        .update(values)
-        .eq("auth_user_id", user.id)
-        .select("id")
-        .maybeSingle()
-    : await supabase
-        .from("guests")
-        .insert({
-          ...values,
-          auth_user_id: user.id,
-          email: user.email,
-        })
-        .select("id")
-        .single();
+    if (!guest) {
+      throw new Error("Saving the guest profile did not return its record.");
+    }
+  } catch (error) {
+    const message = getSaveError(getDatabaseErrorCode(error));
 
-  if (result.error) {
-    return { error: getSaveError(result.error.code) };
-  }
+    if (message) {
+      return { error: message };
+    }
 
-  if (!result.data) {
-    return {
-      error: "Your profile could not be found. Refresh the page and try again.",
-    };
+    throw error;
   }
 
   updateTag(`account-profile-${user.id}`);
+  updateTag(`account-reservations-${user.id}`);
   revalidatePath("/account/profile");
   revalidatePath("/account");
   redirect("/account/profile");

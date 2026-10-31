@@ -3,8 +3,7 @@ import "server-only";
 import { Suspense } from "react";
 
 import HeaderClient from "./HeaderClient";
-import { isUnauthenticatedAuthError } from "@/lib/auth-errors";
-import { getCurrentUser } from "@/lib/supabase/current-user";
+import { getCurrentUser } from "@/lib/auth/current-user";
 
 export default function Header() {
   return (
@@ -20,15 +19,6 @@ async function AuthenticatedHeader() {
 }
 
 async function getSignedInState() {
-  const { user, error } = await getCurrentUser();
-
-  if (error && isUnauthenticatedAuthError(error)) {
-    return false;
-  }
-
-  if (error) {
-    throw error;
-  }
-
+  const { user } = await getCurrentUser();
   return Boolean(user);
 }

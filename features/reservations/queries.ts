@@ -4,7 +4,7 @@ import { cacheLife, cacheTag } from "next/cache";
 
 import { getCabins } from "@/features/cabins/queries";
 import { getAccountGuest } from "@/features/profile/queries";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { postgresPool } from "@/lib/database";
 
 export async function getAccountReservations() {
   const { guest } = await getAccountGuest();
@@ -14,7 +14,7 @@ export async function getAccountReservations() {
   }
 
   const [bookings, cabins] = await Promise.all([
-    getReservationsByGuestId(guest.id),
+    getReservationsByUserId(guest.better_auth_user_id),
     getCabins(),
   ]);
   const cabinNumbers = new Map(
@@ -28,23 +28,22 @@ export async function getAccountReservations() {
   return { guest, reservations };
 }
 
-async function getReservationsByGuestId(guestId: string) {
+async function getReservationsByUserId(userId: string) {
   "use cache: private";
   cacheLife("minutes");
-  cacheTag(`account-reservations-${guestId}`);
+  cacheTag(`account-reservations-${userId}`);
 
-  const accountSupabase = await createServerSupabaseClient();
-  const { data: bookings, error: bookingsError } = await accountSupabase
-    .from("bookings")
-    .select(
-      "id, startDate, endDate, numGuests, numNights, totalPrice, status, cabinId",
-    )
-    .eq("guestId", guestId)
-    .order("startDate", { ascending: false });
-
-  if (bookingsError) {
-    throw bookingsError;
-  }
+  const { rows: bookings } = await postgresPool.query(
+    `SELECT booking.id, booking."startDate", booking."endDate",
+            booking."numGuests", booking."numNights", booking."totalPrice",
+            booking.status, booking."cabinId"
+     FROM public.bookings AS booking
+     INNER JOIN public.guests AS guest
+       ON guest.id = booking."guestId"
+     WHERE guest.better_auth_user_id = $1
+     ORDER BY booking."startDate" DESC`,
+    [userId],
+  );
 
   return bookings;
 }
