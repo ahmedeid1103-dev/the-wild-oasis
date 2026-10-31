@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 
 import { safeLocalRedirect } from "./safe-local-redirect";
 import type { ActionState } from "@/lib/action-state";
-import { auth } from "@/lib/auth";
+import { getAuth } from "@/lib/auth";
 import { signInSchema, signUpSchema } from "./schemas";
 
 // These server actions validate auth form submissions before calling Better Auth.
@@ -74,7 +74,7 @@ export async function signInAction(
   }
 
   try {
-    await auth.api.signInEmail({
+    await getAuth().api.signInEmail({
       body: parsedCredentials.data,
     });
   } catch (error) {
@@ -111,7 +111,7 @@ export async function signUpAction(
   const next = safeLocalRedirect(formData.get("next"));
 
   try {
-    await auth.api.signUpEmail({
+    await getAuth().api.signUpEmail({
       body: {
         ...parsedCredentials.data,
         name: "Guest",
@@ -143,7 +143,7 @@ export async function signOutAction(
   void _formData;
 
   try {
-    await auth.api.signOut({
+    await getAuth().api.signOut({
       headers: await headers(),
     });
   } catch (error) {

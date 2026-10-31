@@ -7,7 +7,7 @@ import { compare } from "bcryptjs";
 import { PostgresDialect } from "kysely";
 import { createTransport } from "nodemailer";
 
-import { postgresPool } from "./database";
+import { getPostgresPool } from "./database";
 
 function requiredEnvironmentVariable(name: string) {
   const value = process.env[name];
@@ -17,23 +17,6 @@ function requiredEnvironmentVariable(name: string) {
   }
 
   return value;
-}
-
-const secret = requiredEnvironmentVariable("BETTER_AUTH_SECRET");
-
-if (Buffer.byteLength(secret) < 32) {
-  throw new Error("BETTER_AUTH_SECRET must be at least 32 bytes.");
-}
-
-const baseURL = new URL(requiredEnvironmentVariable("BETTER_AUTH_URL"));
-
-if (
-  baseURL.pathname !== "/" ||
-  baseURL.search ||
-  baseURL.hash ||
-  (process.env.NODE_ENV === "production" && baseURL.protocol !== "https:")
-) {
-  throw new Error("BETTER_AUTH_URL must be an origin and use HTTPS in production.");
 }
 
 let emailTransport: ReturnType<typeof createTransport> | undefined;
@@ -49,49 +32,80 @@ function getEmailTransport() {
   return emailTransport;
 }
 
-export const auth = betterAuth({
-  appName: "The Wild Oasis",
-  baseURL: baseURL.origin,
-  secret,
-  trustedOrigins: [baseURL.origin],
-  database: {
-    dialect: new PostgresDialect({ pool: postgresPool }),
-    type: "postgres",
-    schemaName: "better_auth",
-  },
-  emailAndPassword: {
-    enabled: true,
-    requireEmailVerification: true,
-    minPasswordLength: 8,
-    maxPasswordLength: 128,
-    password: {
-      verify: async ({ hash, password }) => {
-        if (hash.startsWith("$2")) {
-          return compare(password, hash);
-        }
+function createAuth() {
+  const secret = requiredEnvironmentVariable("BETTER_AUTH_SECRET");
 
-        return verifyPassword({ hash, password });
+  if (Buffer.byteLength(secret) < 32) {
+    throw new Error("BETTER_AUTH_SECRET must be at least 32 bytes.");
+  }
+
+  const baseURL = new URL(requiredEnvironmentVariable("BETTER_AUTH_URL"));
+
+  if (
+    baseURL.pathname !== "/" ||
+    baseURL.search ||
+    baseURL.hash ||
+    (process.env.NODE_ENV === "production" && baseURL.protocol !== "https:")
+  ) {
+    throw new Error(
+      "BETTER_AUTH_URL must be an origin and use HTTPS in production.",
+    );
+  }
+
+  return betterAuth({
+    appName: "The Wild Oasis",
+    baseURL: baseURL.origin,
+    secret,
+    trustedOrigins: [baseURL.origin],
+    database: {
+      dialect: new PostgresDialect({ pool: getPostgresPool() }),
+      type: "postgres",
+      schemaName: "better_auth",
+    },
+    emailAndPassword: {
+      enabled: true,
+      requireEmailVerification: true,
+      minPasswordLength: 8,
+      maxPasswordLength: 128,
+      password: {
+        verify: async ({ hash, password }) => {
+          if (hash.startsWith("$2")) {
+            return compare(password, hash);
+          }
+
+          return verifyPassword({ hash, password });
+        },
       },
     },
-  },
-  emailVerification: {
-    sendOnSignUp: true,
-    sendOnSignIn: true,
-    autoSignInAfterVerification: true,
-    sendVerificationEmail: async ({ user, url }) => {
-      await getEmailTransport().sendMail({
-        from: requiredEnvironmentVariable("EMAIL_FROM"),
-        to: user.email,
-        subject: "Confirm your Wild Oasis account",
-        text: `Confirm your email address by opening this link:\n\n${url}\n\nIf you did not create an account, you can ignore this message.`,
-      });
+    emailVerification: {
+      sendOnSignUp: true,
+      sendOnSignIn: true,
+      autoSignInAfterVerification: true,
+      sendVerificationEmail: async ({ user, url }) => {
+        await getEmailTransport().sendMail({
+          from: requiredEnvironmentVariable("EMAIL_FROM"),
+          to: user.email,
+          subject: "Confirm your Wild Oasis account",
+          text: `Confirm your email address by opening this link:\n\n${url}\n\nIf you did not create an account, you can ignore this message.`,
+        });
+      },
     },
-  },
-  advanced: {
-    database: {
-      generateId: "uuid",
+    advanced: {
+      database: {
+        generateId: "uuid",
+      },
+      useSecureCookies: process.env.NODE_ENV === "production",
     },
-    useSecureCookies: process.env.NODE_ENV === "production",
-  },
-  plugins: [nextCookies()],
-});
+    plugins: [nextCookies()],
+  });
+}
+
+let authInstance: ReturnType<typeof createAuth> | undefined;
+
+export function getAuth() {
+  if (!authInstance) {
+    authInstance = createAuth();
+  }
+
+  return authInstance;
+}

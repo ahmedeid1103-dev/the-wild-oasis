@@ -4,7 +4,7 @@ import { getSessionCookie } from "better-auth/cookies";
 import { cache } from "react";
 import { headers } from "next/headers";
 
-import { auth } from "@/lib/auth";
+import { getAuth } from "@/lib/auth";
 
 export const getCurrentUser = cache(async () => {
   const requestHeaders = await headers();
@@ -13,7 +13,7 @@ export const getCurrentUser = cache(async () => {
     return { user: null };
   }
 
-  const session = await auth.api.getSession({
+  const session = await getAuth().api.getSession({
     headers: requestHeaders,
   });
 

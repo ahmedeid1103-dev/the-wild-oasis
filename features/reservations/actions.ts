@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 
 import type { ActionState } from "@/lib/action-state";
 import { getCurrentUser } from "@/lib/auth/current-user";
-import { postgresPool } from "@/lib/database";
+import { getPostgresPool } from "@/lib/database";
 import { reservationSchema } from "./schemas";
 
 function getReservationSaveError(code: string | undefined): string | null {
@@ -52,7 +52,7 @@ export async function createReservationAction(
     redirect(`/login?next=${encodeURIComponent(`/cabins/${input.cabinId}`)}`);
   }
 
-  const client = await postgresPool.connect();
+  const client = await getPostgresPool().connect();
   let transactionOpen = false;
 
   try {

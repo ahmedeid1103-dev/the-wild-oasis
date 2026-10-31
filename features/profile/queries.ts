@@ -4,7 +4,7 @@ import { cacheLife, cacheTag } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/lib/auth/current-user";
-import { postgresPool } from "@/lib/database";
+import { getPostgresPool } from "@/lib/database";
 
 export async function getAccountGuest() {
   "use cache: private";
@@ -18,7 +18,7 @@ export async function getAccountGuest() {
 
   cacheTag(`account-profile-${user.id}`);
 
-  const { rows } = await postgresPool.query(
+  const { rows } = await getPostgresPool().query(
     `SELECT id, "fullName", email, nationality, "nationalID", "countryFlag",
             better_auth_user_id
      FROM public.guests

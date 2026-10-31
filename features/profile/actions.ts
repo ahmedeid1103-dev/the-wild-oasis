@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 
 import type { ActionState } from "@/lib/action-state";
 import { getCurrentUser } from "@/lib/auth/current-user";
-import { postgresPool } from "@/lib/database";
+import { getPostgresPool } from "@/lib/database";
 import { guestProfileSchema } from "./schemas";
 
 function getSaveError(code: string | undefined): string | null {
@@ -64,7 +64,7 @@ export async function saveProfileAction(
   }
 
   try {
-    const result = await postgresPool.query<{ id: string | number }>(
+    const result = await getPostgresPool().query<{ id: string | number }>(
       `INSERT INTO public.guests (
          "fullName", email, nationality, "nationalID", "countryFlag",
          better_auth_user_id

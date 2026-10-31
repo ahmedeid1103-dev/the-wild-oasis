@@ -4,7 +4,7 @@ import { cacheLife, cacheTag } from "next/cache";
 
 import { getCabins } from "@/features/cabins/queries";
 import { getAccountGuest } from "@/features/profile/queries";
-import { postgresPool } from "@/lib/database";
+import { getPostgresPool } from "@/lib/database";
 
 export async function getAccountReservations() {
   const { guest } = await getAccountGuest();
@@ -33,7 +33,7 @@ async function getReservationsByUserId(userId: string) {
   cacheLife("minutes");
   cacheTag(`account-reservations-${userId}`);
 
-  const { rows: bookings } = await postgresPool.query(
+  const { rows: bookings } = await getPostgresPool().query(
     `SELECT booking.id, booking."startDate", booking."endDate",
             booking."numGuests", booking."numNights", booking."totalPrice",
             booking.status, booking."cabinId"
