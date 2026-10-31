@@ -3,7 +3,8 @@ import "server-only";
 import { redirect } from "next/navigation";
 
 import AuthForm from "./AuthForm";
-import { getCurrentUser } from "@/lib/auth/current-user";
+import { isUnauthenticatedAuthError } from "@/lib/auth-errors";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { safeLocalRedirect } from "../safe-local-redirect";
 
 type AuthPageContentProps = {
@@ -17,7 +18,19 @@ export default async function AuthPageContent({
 }: AuthPageContentProps) {
   const { next } = await searchParams;
   const destination = safeLocalRedirect(next);
-  const { user } = await getCurrentUser();
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error && isUnauthenticatedAuthError(error)) {
+    return <AuthForm mode={mode} next={destination} />;
+  }
+
+  if (error) {
+    throw error;
+  }
 
   if (user) {
     redirect(destination);

@@ -12,8 +12,8 @@ export default function EmailConfirmationErrorPage() {
         We couldn&apos;t confirm your email
       </h1>
       <p className="mb-8 text-lg text-primary-200">
-        The verification link may have expired or already been used. Request a
-        new link by signing in, or create an account again.
+        The confirmation link may have expired or already been used. Open the
+        link in the same browser you used to sign up, then try again.
       </p>
       <div className="flex flex-wrap gap-5">
         <Link

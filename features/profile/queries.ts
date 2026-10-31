@@ -3,14 +3,23 @@ import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { getCurrentUser } from "@/lib/auth/current-user";
-import { getPostgresPool } from "@/lib/database";
+import { isUnauthenticatedAuthError } from "@/lib/auth-errors";
+import { getCurrentUser } from "@/lib/supabase/current-user";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export async function getAccountGuest() {
   "use cache: private";
   cacheLife("minutes");
 
-  const { user } = await getCurrentUser();
+  const { user, error: authError } = await getCurrentUser();
+
+  if (authError && isUnauthenticatedAuthError(authError)) {
+    redirect("/login?next=%2Faccount");
+  }
+
+  if (authError) {
+    throw authError;
+  }
 
   if (!user) {
     redirect("/login?next=%2Faccount");
@@ -18,14 +27,16 @@ export async function getAccountGuest() {
 
   cacheTag(`account-profile-${user.id}`);
 
-  const { rows } = await getPostgresPool().query(
-    `SELECT id, "fullName", email, nationality, "nationalID", "countryFlag",
-            better_auth_user_id
-     FROM public.guests
-     WHERE better_auth_user_id = $1
-     LIMIT 1`,
-    [user.id],
-  );
+  const supabase = await createServerSupabaseClient();
+  const { data: guest, error } = await supabase
+    .from("guests")
+    .select("id, fullName, email, nationality, nationalID, countryFlag")
+    .eq("auth_user_id", user.id)
+    .maybeSingle();
 
-  return { guest: rows[0] ?? null };
+  if (error) {
+    throw error;
+  }
+
+  return { guest };
 }

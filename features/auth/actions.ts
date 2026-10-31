@@ -1,15 +1,16 @@
 "use server";
 
-import { APIError } from "better-auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { safeLocalRedirect } from "./safe-local-redirect";
 import type { ActionState } from "@/lib/action-state";
-import { getAuth } from "@/lib/auth";
+import { getTrustedSiteOrigin } from "@/lib/site-origin";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { signInSchema, signUpSchema } from "./schemas";
 
-// These server actions validate auth form submissions before calling Better Auth.
+// These server actions are the single entry point for the auth forms.
+// Each one validates the submitted form, calls Supabase, and redirects only after success.
 
 function parseCredentials(formData: FormData, mode: "login" | "signup") {
   const credentials = {
@@ -51,14 +52,20 @@ function parseCredentials(formData: FormData, mode: "login" | "signup") {
   return { success: true as const, data: result.data };
 }
 
-function getCallbackUrl(next: string) {
-  const baseURL = process.env.BETTER_AUTH_URL;
+async function getCallbackUrl(next: string) {
+  // Signup email confirmations must redirect back into the app after the user verifies their address.
+  // The browser origin is checked against the trusted site list before constructing this callback URL.
+  const origin = (await headers()).get("origin");
+  const siteOrigin = getTrustedSiteOrigin(origin);
 
-  if (!baseURL) {
-    throw new Error("BETTER_AUTH_URL must be configured.");
+  if (!siteOrigin) {
+    return null;
   }
 
-  return new URL(next, baseURL).toString();
+  return new URL(
+    `/auth/callback?next=${encodeURIComponent(next)}`,
+    siteOrigin,
+  ).toString();
 }
 
 export async function signInAction(
@@ -73,24 +80,21 @@ export async function signInAction(
     return parsedCredentials.state;
   }
 
-  try {
-    await getAuth().api.signInEmail({
-      body: parsedCredentials.data,
-    });
-  } catch (error) {
-    if (error instanceof APIError) {
-      if (error.body?.code === "EMAIL_NOT_VERIFIED") {
-        return {
-          fieldErrors: {
-            email: "Please confirm your email address before signing in.",
-          },
-        };
-      }
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase.auth.signInWithPassword(
+    parsedCredentials.data,
+  );
 
-      return { error: "The email or password is incorrect. Please try again." };
+  if (error) {
+    if (error.code === "email_not_confirmed") {
+      return {
+        fieldErrors: {
+          email: "Please confirm your email address before signing in.",
+        },
+      };
     }
 
-    throw error;
+    return { error: "The email or password is incorrect. Please try again." };
   }
 
   redirect(safeLocalRedirect(formData.get("next")));
@@ -100,8 +104,8 @@ export async function signUpAction(
   _previousState: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  // Prepare a trusted redirect target before creating the account.
-  // This lets email confirmation safely return the user to the app.
+  // Signup reaches Supabase only after validation and a trusted redirect target is prepared.
+  // This ensures the email confirmation flow can safely send the user back to the app.
   const parsedCredentials = parseCredentials(formData, "signup");
 
   if (!parsedCredentials.success) {
@@ -109,49 +113,50 @@ export async function signUpAction(
   }
 
   const next = safeLocalRedirect(formData.get("next"));
+  const emailRedirectTo = await getCallbackUrl(next);
 
-  try {
-    await getAuth().api.signUpEmail({
-      body: {
-        ...parsedCredentials.data,
-        name: "Guest",
-        callbackURL: getCallbackUrl(next),
-      },
-    });
-  } catch (error) {
-    if (error instanceof APIError) {
-      return {
-        error:
-          "We couldn't create your account with those details. Check your email and password, then try again.",
-      };
-    }
-
-    throw error;
+  if (!emailRedirectTo) {
+    return {
+      error: "We couldn't prepare the confirmation link. Please try again.",
+    };
   }
 
-  return {
-    message:
-      "If this email address can be registered, a confirmation email will arrive shortly. Confirm your address before signing in.",
-  };
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.auth.signUp({
+    ...parsedCredentials.data,
+    options: { emailRedirectTo },
+  });
+
+  if (error) {
+    return {
+      error:
+        "We couldn't create your account with those details. Check your email and password, then try again.",
+    };
+  }
+
+  if (!data.session) {
+    return {
+      message:
+        "If this email address can be registered, a confirmation email will arrive shortly. Confirm your address before signing in.",
+    };
+  }
+
+  redirect(next);
 }
 
 export async function signOutAction(
   _previousState: ActionState,
   _formData: FormData,
 ): Promise<ActionState> {
+  // Local sign-out clears the browser session cookie without touching other Supabase scopes.
   void _previousState;
   void _formData;
 
-  try {
-    await getAuth().api.signOut({
-      headers: await headers(),
-    });
-  } catch (error) {
-    if (error instanceof APIError) {
-      return { error: "We couldn't sign you out. Please try again." };
-    }
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase.auth.signOut({ scope: "local" });
 
-    throw error;
+  if (error) {
+    return { error: "We couldn't sign you out. Please try again." };
   }
 
   redirect("/");
