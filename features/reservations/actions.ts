@@ -9,8 +9,8 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { reservationSchema } from "./schemas";
 
 function getReservationSaveError(code: string | undefined): string {
-  if (code === "42501") {
-    return "Reservation creation is unavailable until the reservation permissions migration has been applied.";
+  if (code === "42501" || code === "PGRST202") {
+    return "Reservation creation isn't configured yet. Please try again later.";
   }
 
   return "We couldn't create this reservation. Please try again.";
@@ -67,85 +67,51 @@ export async function createReservationAction(
     };
   }
 
-  const { data: cabin, error: cabinError } = await supabase
-    .from("cabins")
-    .select("regularPrice, discount, maxCapacity")
-    .eq("id", input.cabinId)
-    .maybeSingle();
-
-  if (cabinError) {
-    return { error: "We couldn't verify this cabin. Please try again." };
-  }
-
-  if (!cabin) {
-    return { error: "This cabin is no longer available." };
-  }
-
-  if (
-    !Number.isSafeInteger(input.numGuests) ||
-    input.numGuests < 1 ||
-    input.numGuests > cabin.maxCapacity
-  ) {
-    return { error: "Choose a guest count within this cabin's capacity." };
-  }
-
-  const nightlyRate = Math.max(cabin.regularPrice - cabin.discount, 0);
-
-  if (!Number.isFinite(nightlyRate) || nightlyRate < 0) {
-    return { error: "We couldn't calculate this cabin's price." };
-  }
-
-  const numNights =
-    (Date.parse(`${input.endDate}T00:00:00Z`) -
-      Date.parse(`${input.startDate}T00:00:00Z`)) /
-    86_400_000;
-  const totalPrice = nightlyRate * numNights;
-
-  if (
-    !Number.isSafeInteger(numNights) ||
-    !Number.isSafeInteger(totalPrice)
-  ) {
-    return { error: "Choose valid reservation dates and try again." };
-  }
-
-  const { data: isAvailable, error: availabilityError } = await supabase.rpc(
-    "is_booking_available",
+  const { data: bookingResult, error: bookingError } = await supabase.rpc(
+    "create_booking",
     {
       p_cabin_id: input.cabinId,
       p_start_date: input.startDate,
       p_end_date: input.endDate,
+      p_num_guests: input.numGuests,
+      p_observations: input.observations,
     },
   );
 
-  if (availabilityError) {
+  if (bookingError) {
+    return { error: getReservationSaveError(bookingError.code) };
+  }
+
+  if (bookingResult === "unauthenticated") {
+    redirect(`/login?next=${encodeURIComponent(`/cabins/${input.cabinId}`)}`);
+  }
+
+  if (bookingResult === "guest_profile_missing") {
     return {
-      error:
-        "We couldn't verify cabin availability. Please try again later.",
+      error: "Complete your guest profile before reserving a cabin.",
     };
   }
 
-  if (isAvailable !== true) {
+  if (bookingResult === "cabin_unavailable") {
+    return { error: "This cabin is no longer available." };
+  }
+
+  if (bookingResult === "guest_count_invalid") {
+    return { error: "Choose a guest count within this cabin's capacity." };
+  }
+
+  if (bookingResult === "invalid_reservation") {
+    return { error: "Enter valid reservation details and try again." };
+  }
+
+  if (bookingResult === "booking_unavailable") {
     return {
       error: "This cabin is already reserved for some of those dates.",
     };
   }
 
-  const { error: insertError } = await supabase.from("bookings").insert({
-    cabinId: input.cabinId,
-    guestId: guest.id,
-    cabinPrice: nightlyRate,
-    startDate: `${input.startDate}T00:00:00.000Z`,
-    endDate: `${input.endDate}T00:00:00.000Z`,
-    numGuests: input.numGuests,
-    numNights,
-    totalPrice,
-    status: "unconfirmed",
-    isPaid: false,
-    observations: input.observations,
-  });
-
-  if (insertError) {
-    return { error: getReservationSaveError(insertError.code) };
+  if (bookingResult !== "created") {
+    throw new Error("Unexpected result from the create_booking RPC.");
   }
 
   updateTag(`account-reservations-${guest.id}`);

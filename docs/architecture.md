@@ -34,9 +34,9 @@ flowchart TB
     AuthService["Supabase Auth"]
     PublicData["Public cabin data"]
     PrivateData["Guest profiles + bookings<br/>deployed RLS state unverified"]
-    RPC["is_booking_available RPC"]
+    RPC["create_booking transaction RPC"]
     Drafts["supabase/drafts/<br/>review-only SQL"]
-    EmptyMigrations["supabase/migrations/<br/>no tracked migrations"]
+    Migrations["supabase/migrations/<br/>atomic booking write"]
   end
 
   ClientUI -->|"Server Action calls"| Auth
@@ -59,11 +59,11 @@ flowchart TB
   RouteHandler -->|"code exchange"| AuthService
   Auth -->|"sign in / sign up / sign out"| AuthService
   Profile -->|"authenticated profile read/write"| PrivateData
-  Reservations -->|"owner-scoped read / validated insert"| PrivateData
-  Reservations -->|"availability preflight"| RPC
+  Reservations -->|"owner-scoped read"| PrivateData
+  Reservations -->|"atomic owner-scoped booking write"| RPC
   Cabins -->|"cached public reads"| PublicData
   Drafts -.->|"not yet promoted / applied"| PrivateData
-  EmptyMigrations -.->|"schema reproducibility gap"| Database
+  Migrations -.->|"must be applied to target database"| Database
 ```
 
 ## Boundaries
@@ -74,5 +74,5 @@ flowchart TB
 - `proxy.ts` refreshes the Supabase session and performs an optimistic redirect for account URLs. It is not the authorization boundary for data access.
 - `lib/supabase/server.ts` adapts request cookies for server auth and data access. `data-client.ts` is reserved for public server-side cabin reads. Both are server-only; `client.ts` exposes a browser client factory that is currently unused. All use the public publishable key.
 - Cabin reads use the remote cache; account reads use private caching and user-specific tags. Mutations invalidate the relevant account tags and routes.
-- Reservation dates are date-only values interpreted in the property's `Europe/Rome` time zone, independent of the guest browser's time zone.
-- Guest ownership/RLS and reservation-write SQL are present only as drafts, with no tracked migrations. The deployed schema and policies therefore need external verification; the diagram does not assert that deployed RLS is active.
+- Reservation dates are date-only values interpreted in the property's `Europe/Rome` time zone, independent of the guest browser's time zone. Reservation creation locks the cabin row and performs its availability check and insert in one database transaction; direct authenticated table inserts are revoked by the migration.
+- The tracked reservation migration assumes the existing `guests`, `cabins`, and `bookings` schema reflected by the app and reservation SQL draft. Apply it to the target Supabase database before deploying the matching application code. Other guest ownership/RLS setup remains in drafts, and deployed schema and policies still need external verification.

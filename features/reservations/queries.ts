@@ -13,10 +13,13 @@ export async function getAccountReservations() {
     return { guest, reservations: [] };
   }
 
-  const [bookings, cabins] = await Promise.all([
-    getReservationsByGuestId(guest.id),
-    getCabins(),
-  ]);
+  const bookings = await getReservationsByGuestId(guest.id);
+
+  if (bookings.length === 0) {
+    return { guest, reservations: [] };
+  }
+
+  const cabins = await getCabins();
   const cabinNumbers = new Map(
     cabins.map((cabin) => [cabin.id, cabin.cabinNumber]),
   );

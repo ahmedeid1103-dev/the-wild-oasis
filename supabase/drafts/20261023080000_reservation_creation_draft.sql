@@ -96,10 +96,10 @@ CREATE POLICY bookings_insert_own
     )
   );
 
--- The availability RPC and insert are separate requests, so two simultaneous
--- actions can still both pass the check. A reviewed exclusion constraint or a
--- single transaction-backed reservation function is required for race-free
--- overlap prevention; neither is added here because status semantics and
--- existing overlapping data must be verified first.
+-- This draft's availability RPC and direct insert are separate requests and
+-- are not the application booking-write path. The tracked
+-- create_booking_atomically migration serializes application writes by
+-- locking the cabin row and revokes authenticated direct INSERT privileges.
+-- Do not rely on this draft alone for concurrency-safe booking creation.
 
 COMMIT;

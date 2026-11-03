@@ -22,6 +22,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
           src={bg}
           alt="A secluded cabin beside a mountain lake"
           fill
+          preload
           sizes="(min-width: 1024px) 50vw, 100vw"
           className="object-cover"
         />

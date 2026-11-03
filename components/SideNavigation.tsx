@@ -33,7 +33,7 @@ export default function SideNavigation() {
 
   return (
     <nav className="flex flex-col">
-      <ul className="flex flex-col gap-2 text-lg">
+      <ul className="flex flex-wrap gap-1 text-sm sm:text-base md:flex-col md:gap-2 md:text-lg">
         {navLinks.map((link) => {
           const Icon = link.icon;
           const isActive =
@@ -46,13 +46,13 @@ export default function SideNavigation() {
               <Link
                 href={link.href}
                 aria-current={isActive ? "page" : undefined}
-                className={`flex items-center gap-4 px-5 py-3 font-semibold transition-colors ${
+                className={`flex items-center gap-2 px-3 py-2 font-semibold transition-colors sm:gap-3 sm:px-4 md:gap-4 md:px-5 md:py-3 ${
                   isActive
                     ? "bg-primary-900 text-primary-100"
                     : "text-primary-200 hover:bg-primary-900 hover:text-primary-100"
                 }`}
               >
-                <Icon className="h-5 w-5 text-primary-600" />
+                <Icon className="size-4 shrink-0 text-primary-600 md:size-5" />
                 <span>{link.name}</span>
               </Link>
             </li>
@@ -60,7 +60,7 @@ export default function SideNavigation() {
         })}
       </ul>
 
-      <div className="mt-6 border-t border-primary-900 pt-2">
+      <div className="mt-2 border-t border-primary-900 pt-2 md:mt-6">
         <SignOutButton />
       </div>
     </nav>
