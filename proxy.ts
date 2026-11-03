@@ -39,18 +39,19 @@ export async function proxy(request: NextRequest) {
 
   const supabase = await createServerSupabaseClient(cookieMethods);
   const {
-    data: { user },
+    data,
     error,
-  } = await supabase.auth.getUser();
+  } = await supabase.auth.getClaims();
+  const hasUser = typeof data?.claims.sub === "string";
 
   const pathname = request.nextUrl.pathname;
   const isAccountPath =
     pathname === "/account" || pathname.startsWith("/account/");
   const isUnauthenticated = error
     ? isUnauthenticatedAuthError(error)
-    : !user;
+    : !hasUser;
 
-  if (isAccountPath && !user && isUnauthenticated) {
+  if (isAccountPath && !hasUser && isUnauthenticated) {
     const next = `${pathname}${request.nextUrl.search}`;
     const redirectResponse = NextResponse.redirect(
       new URL(`/login?next=${encodeURIComponent(next)}`, request.url),

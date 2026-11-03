@@ -6,10 +6,11 @@ import { createServerSupabaseClient } from "./server";
 
 export const getCurrentUser = cache(async () => {
   const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
+  const { data, error } = await supabase.auth.getClaims();
+  const userId = data?.claims.sub;
 
-  return { user, error };
+  return {
+    user: typeof userId === "string" ? { id: userId } : null,
+    error,
+  };
 });
