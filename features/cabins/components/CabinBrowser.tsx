@@ -36,6 +36,10 @@ export default function CabinBrowser({
   const previousFilter = useRef(filter);
 
   useEffect(() => {
+    if (process.env.NODE_ENV === "production") {
+      return;
+    }
+
     if (previousFilter.current === filter) {
       return;
     }
@@ -64,19 +68,22 @@ export default function CabinBrowser({
           endMark,
         );
 
-        console.info(
-          "[cabin-perf]",
-          JSON.stringify({
-            event: "results-visible",
-            filter,
-            durationMs: Number(
-              (performance.now() - startEntry.startTime).toFixed(1),
-            ),
-          }),
-        );
+        if (process.env.NODE_ENV !== "production") {
+          console.info(
+            "[cabin-perf]",
+            JSON.stringify({
+              event: "results-visible",
+              filter,
+              durationMs: Number(
+                (performance.now() - startEntry.startTime).toFixed(1),
+              ),
+            }),
+          );
+        }
 
         performance.clearMarks(startMark);
         performance.clearMarks(endMark);
+        performance.clearMeasures(`cabin-filter-results-visible:${filter}`);
       });
     });
 
@@ -101,10 +108,12 @@ export default function CabinBrowser({
       return;
     }
 
-    for (const item of filters) {
-      performance.clearMarks(getSelectionMarkName(item.value));
+    if (process.env.NODE_ENV !== "production") {
+      for (const item of filters) {
+        performance.clearMarks(getSelectionMarkName(item.value));
+      }
+      performance.mark(getSelectionMarkName(nextFilter));
     }
-    performance.mark(getSelectionMarkName(nextFilter));
 
     const params = new URLSearchParams(window.location.search);
 
