@@ -5,7 +5,7 @@ import bg from "@/public/bg.webp";
 
 export default function Page() {
   return (
-    <div className="fixed inset-0 z-0 isolate bg-primary-950">
+    <div className="home-hero relative isolate bg-primary-950">
       <Image
         src={bg}
         fill

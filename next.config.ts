@@ -2,16 +2,13 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
-  // Preserve the existing Cache Components prefetch behavior during upgrade.
-  partialPrefetching: false,
-  experimental: {
-    staleTimes: {
-      // Reuse dynamic page segments on return navigation; server actions clear stale results.
-      dynamic: 300,
-    },
-  },
+  // Reuse a route shell instead of prefetching every individual cabin page.
+  partialPrefetching: true,
   images: {
     qualities: [75, 80, 85],
+    remotePatterns: process.env.NEXT_PUBLIC_SUPABASE_URL
+      ? [new URL("/storage/v1/object/public/**", process.env.NEXT_PUBLIC_SUPABASE_URL)]
+      : [],
   },
 };
 

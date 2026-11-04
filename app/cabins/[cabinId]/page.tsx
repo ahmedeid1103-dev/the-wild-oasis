@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import LoadingIndicator from "@/components/LoadingIndicator";
 
 import CabinDetail from "@/features/cabins/components/CabinDetail";
 import { getCabin, getCabins } from "@/features/cabins/queries";
@@ -52,7 +54,19 @@ export async function generateStaticParams() {
   }));
 }
 
-export default async function Page({ params }: PageProps) {
+export default function Page({ params }: PageProps) {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <LoadingIndicator label="Loading your cabin..." />
+      </div>
+    }>
+      <CabinPageContent params={params} />
+    </Suspense>
+  );
+}
+
+async function CabinPageContent({ params }: PageProps) {
   const { cabinId } = await params;
 
   if (!isValidCabinId(cabinId)) {

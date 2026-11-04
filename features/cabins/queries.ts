@@ -5,7 +5,8 @@ import { cacheLife, cacheTag } from "next/cache";
 import type { Cabin } from "./types";
 import { supabase } from "@/lib/supabase/data-client";
 
-// Public cabin data is shared across serverless instances and can be invalidated by tag.
+// Public data uses tagged caching. Cross-instance sharing requires a remote
+// cache handler supplied by the deployment platform.
 
 export async function getCabins(): Promise<Cabin[]> {
   "use cache: remote";
@@ -18,7 +19,8 @@ export async function getCabins(): Promise<Cabin[]> {
     .from("cabins")
     .select(
       "id, name, maxCapacity, regularPrice, discount, image, description, cabin_number",
-    );
+    )
+    .order("cabin_number", { ascending: true });
 
   const { data, error } = await query;
 

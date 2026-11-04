@@ -6,4 +6,6 @@ import { getSupabaseConfig } from "./config";
 
 const { supabaseUrl, supabasePublishableKey } = getSupabaseConfig();
 
-export const supabase = createClient(supabaseUrl, supabasePublishableKey);
+export const supabase = createClient(supabaseUrl, supabasePublishableKey, {
+  auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+});

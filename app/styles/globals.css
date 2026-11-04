@@ -60,6 +60,36 @@ body {
   color: var(--color-content);
 }
 
+/* Keep the hero in document flow so short screens and zoom can scroll. */
+.site-shell--home .site-header {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 50;
+}
+
+.skip-link {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 100;
+  transform: translateY(-200%);
+  background: var(--color-action);
+  color: var(--color-canvas);
+  padding: 0.75rem 1.25rem;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @layer components {
   .ui-page-title {
     color: var(--color-action-hover);
@@ -103,6 +133,7 @@ body {
     display: block;
     min-height: 3rem;
     width: 100%;
+    min-width: 0;
     border: 1px solid var(--color-primary-700);
     border-radius: var(--radius-control);
     background-color: var(--color-canvas);

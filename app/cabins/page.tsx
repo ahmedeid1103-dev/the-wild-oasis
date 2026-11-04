@@ -47,7 +47,7 @@ export default async function Page() {
           <div className="flex gap-8 border-t border-primary-700 pt-5 lg:min-w-52 lg:flex-col lg:gap-5 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
             <div>
               <p className="text-2xl font-medium text-primary-50">
-                01—{String(cabins.length).padStart(2, "0")}
+                {String(cabins.length).padStart(2, "0")}
               </p>
               <p className="mt-1 text-xs uppercase tracking-[0.14em] text-primary-400">
                 Private cabins

@@ -8,10 +8,10 @@ type AccountLayoutProps = {
 
 export default function AccountLayout({ children }: AccountLayoutProps) {
   return (
-    <div className="grid grid-cols-1 gap-8 md:grid-cols-[16rem_1fr] md:gap-12">
+    <div className="grid grid-cols-1 gap-8 md:grid-cols-[14rem_minmax(0,1fr)] lg:gap-12">
       <SideNavigation />
 
-      <div className="py-1">{children}</div>
+      <div className="min-w-0 break-words py-1">{children}</div>
     </div>
   );
 }

@@ -30,10 +30,10 @@ export default function ProfileForm({ email, profile }: ProfileFormProps) {
       >
         <div className="h-1 bg-linear-to-r from-accent-700 via-accent-400 to-accent-700" />
 
-        <div className="flex flex-col gap-5 border-b border-primary-800 px-6 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+        <div className="flex flex-wrap items-center justify-between gap-5 border-b border-primary-800 px-6 py-6 sm:px-8">
           <div className="flex items-center gap-4">
-            <div className="flex size-14 shrink-0 items-center justify-center border border-accent-700/70 bg-accent-900/30 text-2xl text-accent-300">
-              {profile.countryFlag}
+            <div title={profile.countryFlag} className="flex size-14 shrink-0 items-center justify-center border border-accent-700/70 bg-accent-900/30 px-1 text-sm text-accent-300">
+              <span className="truncate">{profile.countryFlag}</span>
             </div>
             <div>
               <p className="mb-1 text-xs font-semibold tracking-widest text-accent-400 uppercase">

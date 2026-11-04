@@ -16,7 +16,6 @@ export default function HeaderClient({ isSignedIn }: HeaderClientProps) {
       fallback={
         <HeaderContents
           isSignedIn={isSignedIn}
-          isHomePage={false}
           pathname=""
         />
       }
@@ -31,7 +30,6 @@ function PathAwareHeader({ isSignedIn }: HeaderClientProps) {
   return (
     <HeaderContents
       isSignedIn={isSignedIn}
-      isHomePage={pathname === "/"}
       pathname={pathname}
     />
   );
@@ -39,16 +37,11 @@ function PathAwareHeader({ isSignedIn }: HeaderClientProps) {
 
 function HeaderContents({
   isSignedIn,
-  isHomePage,
   pathname,
-}: HeaderClientProps & { isHomePage: boolean; pathname: string }) {
+}: HeaderClientProps & { pathname: string }) {
   return (
     <header
-      className={
-        isHomePage
-          ? "absolute inset-x-0 top-0 z-50 px-3 py-3 sm:px-6 sm:py-4 lg:px-8 lg:py-5"
-          : "relative z-20 px-3 py-3 sm:px-6 sm:py-4 lg:px-8 lg:py-5"
-      }
+      className="site-header relative z-20 px-3 py-3 sm:px-6 sm:py-4 lg:px-8 lg:py-5"
     >
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 sm:gap-6">
         <Logo />

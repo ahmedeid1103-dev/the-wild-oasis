@@ -31,9 +31,9 @@ export default function CabinDetail({ cabin }: { cabin: Cabin }) {
             src={cabin.image}
             alt={`${cabin.name}, a private cabin at The Wild Oasis`}
             fill
-            priority
+            preload
             className="object-cover transition-transform duration-700 group-hover:scale-[1.02] motion-reduce:transition-none"
-            sizes="(max-width: 1024px) 100vw, 1200px"
+            sizes="(max-width: 1199px) 100vw, 1152px"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-primary-950 via-primary-950/20 to-primary-950/5" />
           <div className="absolute inset-x-0 bottom-0 flex flex-col gap-5 p-5 sm:flex-row sm:items-end sm:justify-between sm:p-8 lg:p-10">

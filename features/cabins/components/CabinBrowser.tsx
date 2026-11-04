@@ -134,7 +134,7 @@ export default function CabinBrowser({
       <div className="mb-6 border-y border-primary-800 py-5">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex items-baseline gap-3">
-            <p className="font-medium text-primary-100">
+            <p role="status" aria-live="polite" aria-atomic="true" className="font-medium text-primary-100">
               {visibleCabins.length}{" "}
               {visibleCabins.length === 1 ? "cabin" : "cabins"}
             </p>
@@ -158,7 +158,7 @@ export default function CabinBrowser({
                   type="button"
                   aria-pressed={isActive}
                   onClick={() => handleFilterChange(item.value)}
-                  className={`ui-button min-h-10 px-4 py-2 text-xs sm:text-sm ${
+                  className={`ui-button min-h-11 px-4 py-2 text-xs sm:text-sm ${
                     isActive
                       ? "ui-button--primary"
                       : "ui-button--secondary"
@@ -172,7 +172,17 @@ export default function CabinBrowser({
         </div>
       </div>
 
-      <CabinList cabins={visibleCabins} />
+      {visibleCabins.length === 0 && filter !== "all" ? (
+        <div className="ui-card px-6 py-10 text-center">
+          <h2 className="mb-3 text-xl text-content">No cabins match this group size</h2>
+          <p className="mb-6 text-content-muted">Try another capacity to find your stay.</p>
+          <button type="button" onClick={() => handleFilterChange("all")} className="ui-button ui-button--secondary">
+            Show all cabins
+          </button>
+        </div>
+      ) : (
+        <CabinList cabins={visibleCabins} />
+      )}
     </section>
   );
 }

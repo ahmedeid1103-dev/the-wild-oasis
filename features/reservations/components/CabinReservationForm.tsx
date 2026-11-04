@@ -100,7 +100,7 @@ export default function CabinReservationForm({
     <form action={formAction} className="mt-6 space-y-4">
       <input type="hidden" name="cabinId" value={cabinId} />
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
         <label className="ui-field">
           <span className="ui-field__label text-xs uppercase tracking-wide text-primary-400">
             Check-in

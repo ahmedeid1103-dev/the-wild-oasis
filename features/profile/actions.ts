@@ -10,7 +10,7 @@ import { guestProfileSchema } from "./schemas";
 
 function getSaveError(code: string | undefined): string {
   if (code === "42501") {
-    return "Profile saving is unavailable until the guest profile permissions migration has been applied.";
+    return "Profile saving is temporarily unavailable. Please try again later or contact the property.";
   }
 
   if (code === "23505") {

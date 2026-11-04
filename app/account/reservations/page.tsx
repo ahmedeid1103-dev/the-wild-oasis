@@ -42,17 +42,18 @@ async function ReservationsPageContent() {
         </h1>
 
         <p className="text-lg text-primary-200">
-          Here you can see all your reservations and manage your upcoming stays.
+          View your reservations and the details of your upcoming stays.
         </p>
       </div>
 
       {!guest ? (
         <div className="ui-card ui-card--raised px-8 py-10">
           <p className="text-lg text-primary-200">
-            Your sign-in is not linked to a guest profile, so reservations
-            cannot be shown. Please contact the property to link your account;
-            records are not linked automatically.
+            Complete your guest profile to start planning your stays.
           </p>
+          <Link href="/account/profile" className="ui-button ui-button--primary mt-6">
+            Set up your profile
+          </Link>
         </div>
       ) : (
         <>
@@ -74,7 +75,7 @@ async function ReservationsPageContent() {
                   key={reservation.id}
                   className="ui-card ui-card--raised shadow-none"
                 >
-                  <div className="flex items-center justify-between border-b border-primary-800 px-6 py-5">
+                  <div className="flex flex-wrap items-center justify-between gap-4 border-b border-primary-800 px-6 py-5">
                     <div>
                       <p className="mb-1 text-sm text-primary-400">
                         Reservation #{reservation.id}

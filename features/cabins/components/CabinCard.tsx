@@ -23,7 +23,7 @@ export default function CabinCard({ cabin }: CabinCardProps) {
         <Image
           src={image}
           fill
-          sizes="(max-width: 639px) 100vw, (max-width: 1279px) 50vw, 33vw"
+          sizes="(max-width: 639px) calc(100vw - 32px), (max-width: 1279px) calc((100vw - 72px) / 2), 368px"
           alt={`Inside ${name}`}
           className="object-cover transition-transform duration-700 group-hover:scale-105 motion-reduce:transition-none"
         />
@@ -39,7 +39,7 @@ export default function CabinCard({ cabin }: CabinCardProps) {
       </Link>
 
       <div className="flex flex-1 flex-col p-5 sm:p-6">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary-400">
               Private hideaway
@@ -54,7 +54,7 @@ export default function CabinCard({ cabin }: CabinCardProps) {
           </div>
         </div>
 
-        <p className="mt-4 line-clamp-2 min-h-12 text-sm leading-6 text-primary-300">
+        <p className="mb-5 mt-4 line-clamp-2 min-h-12 text-sm leading-6 text-primary-300">
           {cabin.description}
         </p>
 

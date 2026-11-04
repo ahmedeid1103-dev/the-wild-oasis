@@ -49,7 +49,7 @@ export default function Page() {
           <Image
             src={about1}
             fill
-            priority
+            preload
             placeholder="blur"
             sizes="(max-width: 1024px) 100vw, 55vw"
             alt="Family gathered around a fire pit in front of a cabin"
